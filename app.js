@@ -200,8 +200,8 @@ document.querySelectorAll("textarea[placeholder='ДД-ММ-ГГГГ']").forEach(
 
 /* ========================================================= */
 /* ==================== STORAGE ============================ */
-/* localStorage: данные сохраняются между сессиями и          */
-/* переживают перезагрузку. Стираются после скачивания PDF.   */
+/* localStorage: сохраняется между сессиями, переживает F5.  */
+/* Очищается после скачивания PDF.                            */
 /* ========================================================= */
 
 const STORAGE_KEY = "visaFiller:v1";
@@ -261,11 +261,33 @@ document.getElementById("block_doctype_other").classList.toggle("hidden", docume
 document.getElementById("block_money_self").classList.toggle("hidden", document.getElementById("f_money_who").value !== "self");
 document.getElementById("block_money_sponsor").classList.toggle("hidden", document.getElementById("f_money_who").value !== "sponsor");
 
-/* сохраняем сразу при любом изменении */
-document.addEventListener("input", e => { if (e.target.matches("textarea, input, select")) saveFormState(); });
-document.addEventListener("change", e => { if (e.target.matches("textarea, input, select")) saveFormState(); });
-document.querySelectorAll(".toggle-btn").forEach(b => b.addEventListener("click", saveFormState));
-window.addEventListener("pagehide", saveFormState);
+/* автосохранение: input с debounce, change сразу */
+(function attachAutoSave() {
+  let timer = null;
+  const schedule = () => {
+    if (timer) clearTimeout(timer);
+    timer = setTimeout(saveFormState, 300);
+  };
+
+  document.addEventListener("input", (e) => {
+    if (e.target && e.target.matches && e.target.matches("textarea, input, select")) schedule();
+  });
+  document.addEventListener("change", (e) => {
+    if (e.target && e.target.matches && e.target.matches("textarea, input, select")) saveFormState();
+  });
+  document.querySelectorAll(".toggle-btn").forEach(b => {
+    b.addEventListener("click", saveFormState);
+  });
+
+  window.addEventListener("beforeunload", () => {
+    if (timer) clearTimeout(timer);
+    saveFormState();
+  });
+  window.addEventListener("pagehide", () => {
+    if (timer) clearTimeout(timer);
+    saveFormState();
+  });
+})();
 
 /* ========================================================= */
 /* ============ МОДАЛЬНОЕ ОКНО И ПАРСЕР ТЕКСТА ============= */
@@ -607,7 +629,6 @@ runBtn.onclick = async () => {
         f.enableMultiline();
         f.setText(value);
         filled++;
-        console.log("OK", fieldName, "=", value);
       } catch (e) {
         try {
           const f = form.getTextField(fieldName);
@@ -617,7 +638,6 @@ runBtn.onclick = async () => {
           f.enableMultiline();
           f.setText(value);
           filled++;
-          console.log("OK (fallback)", fieldName, "=", value);
         } catch (e2) {
           console.warn("text FAIL", fieldName, e.message, "| fallback:", e2.message);
         }
@@ -638,7 +658,6 @@ runBtn.onclick = async () => {
       try {
         form.getCheckBox(fieldName).check();
         filled++;
-        console.log("SELECT", id, "->", fieldName);
       } catch (e) {
         console.warn("select FAIL", id, "->", fieldName, e.message);
       }
@@ -675,7 +694,9 @@ runBtn.onclick = async () => {
     const yyyy = d.getFullYear();
     const fullName = [given, surname].filter(Boolean).join(" ") || "без имени";
     a.download = `Анкета (${fullName}) ${dd}-${mm}-${yyyy}.pdf`;
+    document.body.appendChild(a);
     a.click();
+    document.body.removeChild(a);
     URL.revokeObjectURL(urlOut);
 
     statusEl.textContent = `Готово. Заполнено полей: ${filled}.`;
