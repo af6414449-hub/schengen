@@ -683,9 +683,8 @@ runBtn.onclick = async () => {
     const out = await doc.save();
     const blob = new Blob([out], { type: "application/pdf" });
     const urlOut = URL.createObjectURL(blob);
-    const a = document.createElement("a");
-    a.href = urlOut;
 
+    // Имя файла
     const surname = (document.getElementById("f_surname").value || "").trim();
     const given   = (document.getElementById("f_given_names").value || "").trim();
     const d = new Date();
@@ -693,13 +692,38 @@ runBtn.onclick = async () => {
     const mm = String(d.getMonth() + 1).padStart(2, "0");
     const yyyy = d.getFullYear();
     const fullName = [given, surname].filter(Boolean).join(" ") || "без имени";
-    a.download = `Анкета (${fullName}) ${dd}-${mm}-${yyyy}.pdf`;
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-    URL.revokeObjectURL(urlOut);
+    const fileName = `Анкета (${fullName}) ${dd}-${mm}-${yyyy}.pdf`;
 
-    statusEl.textContent = `Готово. Заполнено полей: ${filled}.`;
+    // Мобильные — открываем в новой вкладке, десктоп — скачиваем
+    const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
+
+    if (isMobile) {
+      const w = window.open(urlOut, "_blank");
+      if (!w) {
+        // Если всплывающее окно заблокировано — предлагаем открыть вручную
+        statusEl.innerHTML = '';
+        const link = document.createElement("a");
+        link.href = urlOut;
+        link.target = "_blank";
+        link.textContent = "Открыть PDF";
+        statusEl.appendChild(document.createTextNode("Готово. "));
+        statusEl.appendChild(link);
+        statusEl.appendChild(document.createTextNode(" и сохраните через меню браузера."));
+      } else {
+        statusEl.textContent = "Готово. PDF открыт — сохраните через меню браузера.";
+      }
+    } else {
+      const a = document.createElement("a");
+      a.href = urlOut;
+      a.download = fileName;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      statusEl.textContent = `Готово. Заполнено полей: ${filled}.`;
+    }
+
+    // Не отзываем URL сразу — на мобильных вкладка ещё может грузить PDF
+    setTimeout(() => URL.revokeObjectURL(urlOut), 60000);
 
     clearFormState();
 
