@@ -200,152 +200,72 @@ document.querySelectorAll("textarea[placeholder='ДД-ММ-ГГГГ']").forEach(
 
 /* ========================================================= */
 /* ==================== STORAGE ============================ */
+/* localStorage: данные сохраняются между сессиями и          */
+/* переживают перезагрузку. Стираются после скачивания PDF.   */
 /* ========================================================= */
 
 const STORAGE_KEY = "visaFiller:v1";
 
-/** Собирает текущее состояние формы. */
 function collectFormState() {
-  const state = { texts: {}, selects: {}, checks: {}, toggles: {} };
-
-  document.querySelectorAll("textarea").forEach(el => {
-    if (el.id) state.texts[el.id] = el.value;
-  });
-  document.querySelectorAll("select").forEach(el => {
-    if (el.id) state.selects[el.id] = el.value;
-  });
-  document.querySelectorAll("input[type=checkbox]").forEach(el => {
-    if (el.id) state.checks[el.id] = el.checked;
-  });
-  document.querySelectorAll(".toggle-btn").forEach(btn => {
-    state.toggles[btn.dataset.target] = btn.classList.contains("open");
-  });
-
-  return state;
+  const s = { texts: {}, selects: {}, checks: {}, toggles: {} };
+  document.querySelectorAll("textarea").forEach(el => { if (el.id) s.texts[el.id] = el.value; });
+  document.querySelectorAll("select").forEach(el => { if (el.id) s.selects[el.id] = el.value; });
+  document.querySelectorAll("input[type=checkbox]").forEach(el => { if (el.id) s.checks[el.id] = el.checked; });
+  document.querySelectorAll(".toggle-btn").forEach(b => { s.toggles[b.dataset.target] = b.classList.contains("open"); });
+  return s;
 }
 
-/** Применяет состояние к форме. Без событий. */
-function applyFormState(state) {
-  if (!state || typeof state !== "object") return;
-
-  if (state.texts) {
-    for (const [id, value] of Object.entries(state.texts)) {
-      const el = document.getElementById(id);
-      if (!el) continue;
-      el.value = value ?? "";
-      autoGrow(el);
-    }
-  }
-
-  if (state.selects) {
-    for (const [id, value] of Object.entries(state.selects)) {
-      const el = document.getElementById(id);
-      if (el && el.tagName === "SELECT") el.value = value;
-    }
-  }
-
-  if (state.checks) {
-    for (const [id, checked] of Object.entries(state.checks)) {
-      const el = document.getElementById(id);
-      if (el && el.type === "checkbox") el.checked = !!checked;
-    }
-  }
-
-  if (state.toggles) {
-    for (const [targetId, open] of Object.entries(state.toggles)) {
-      const btn = document.querySelector(`.toggle-btn[data-target="${targetId}"]`);
-      const block = document.getElementById(targetId);
-      if (btn && block) setToggleState(btn, !!open);
-    }
-  }
+function applyFormState(s) {
+  if (!s) return;
+  Object.entries(s.texts || {}).forEach(([id, v]) => {
+    const el = document.getElementById(id);
+    if (el) { el.value = v ?? ""; autoGrow(el); }
+  });
+  Object.entries(s.selects || {}).forEach(([id, v]) => {
+    const el = document.getElementById(id);
+    if (el && el.tagName === "SELECT") el.value = v;
+  });
+  Object.entries(s.checks || {}).forEach(([id, v]) => {
+    const el = document.getElementById(id);
+    if (el && el.type === "checkbox") el.checked = !!v;
+  });
+  Object.entries(s.toggles || {}).forEach(([t, open]) => {
+    const btn = document.querySelector(`.toggle-btn[data-target="${t}"]`);
+    if (btn) setToggleState(btn, !!open);
+  });
 }
 
-/** Сохраняет состояние. */
 function saveFormState() {
-  try {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(collectFormState()));
-  } catch (e) {
-    console.warn("Не удалось сохранить состояние:", e);
-  }
+  try { localStorage.setItem(STORAGE_KEY, JSON.stringify(collectFormState())); } catch (e) {}
 }
-
-/** Загружает состояние. Возвращает true, если что-то было. */
 function loadFormState() {
   try {
     const raw = localStorage.getItem(STORAGE_KEY);
-    if (!raw) return false;
-    applyFormState(JSON.parse(raw));
-    return true;
-  } catch (e) {
-    console.warn("Не удалось загрузить состояние:", e);
-    return false;
-  }
+    if (raw) applyFormState(JSON.parse(raw));
+  } catch (e) {}
 }
-
-/** Очищает сохранённое состояние. */
 function clearFormState() {
-  try {
-    localStorage.removeItem(STORAGE_KEY);
-  } catch (e) {
-    console.warn("Не удалось очистить состояние:", e);
-  }
+  try { localStorage.removeItem(STORAGE_KEY); } catch (e) {}
 }
 
-/* --- Порядок инициализации --- */
-
-// 1. Дефолты
+/* --- init --- */
 document.getElementById("f_marital").value = "single";
 document.getElementById("f_doctype").value = "ordinary";
 document.getElementById("f_purpose").value = "tourism";
 document.getElementById("f_entries").value = "1";
 document.getElementById("f_money_who").value = "self";
 
-// 2. Восстановление из localStorage
 loadFormState();
 
-// 3. Обновляем видимость условных блоков
-(function syncConditionalBlocks() {
-  const dt = document.getElementById("f_doctype").value;
-  document.getElementById("block_doctype_other").classList.toggle("hidden", dt !== "other");
+document.getElementById("block_doctype_other").classList.toggle("hidden", document.getElementById("f_doctype").value !== "other");
+document.getElementById("block_money_self").classList.toggle("hidden", document.getElementById("f_money_who").value !== "self");
+document.getElementById("block_money_sponsor").classList.toggle("hidden", document.getElementById("f_money_who").value !== "sponsor");
 
-  const who = document.getElementById("f_money_who").value;
-  document.getElementById("block_money_self").classList.toggle("hidden", who !== "self");
-  document.getElementById("block_money_sponsor").classList.toggle("hidden", who !== "sponsor");
-})();
-
-// 4. Автосохранение
-(function attachAutoSave() {
-  let timer = null;
-  const scheduleSave = () => {
-    if (timer) clearTimeout(timer);
-    timer = setTimeout(saveFormState, 200);
-  };
-
-  document.addEventListener("input", (e) => {
-    if (e.target.matches("textarea, input, select")) scheduleSave();
-  });
-  document.addEventListener("change", (e) => {
-    if (e.target.matches("textarea, input, select")) scheduleSave();
-  });
-  document.querySelectorAll(".toggle-btn").forEach(btn => {
-    btn.addEventListener("click", scheduleSave);
-  });
-
-  window.addEventListener("beforeunload", () => {
-    if (timer) clearTimeout(timer);
-    saveFormState();
-  });
-  window.addEventListener("pagehide", () => {
-    if (timer) clearTimeout(timer);
-    saveFormState();
-  });
-  document.addEventListener("visibilitychange", () => {
-    if (document.visibilityState === "hidden") {
-      if (timer) clearTimeout(timer);
-      saveFormState();
-    }
-  });
-})();
+/* сохраняем сразу при любом изменении */
+document.addEventListener("input", e => { if (e.target.matches("textarea, input, select")) saveFormState(); });
+document.addEventListener("change", e => { if (e.target.matches("textarea, input, select")) saveFormState(); });
+document.querySelectorAll(".toggle-btn").forEach(b => b.addEventListener("click", saveFormState));
+window.addEventListener("pagehide", saveFormState);
 
 /* ========================================================= */
 /* ============ МОДАЛЬНОЕ ОКНО И ПАРСЕР ТЕКСТА ============= */
@@ -760,9 +680,7 @@ runBtn.onclick = async () => {
 
     statusEl.textContent = `Готово. Заполнено полей: ${filled}.`;
 
-    /* === STORAGE: сброс после скачивания === */
     clearFormState();
-    /* ====================================== */
 
   } catch (e) {
     console.error(e);
