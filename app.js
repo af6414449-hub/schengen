@@ -123,8 +123,11 @@ function allToggleNames() {
   return [...names];
 }
 
+/* ---------- вспомогательные функции UI ---------- */
+
 function setToggleState(btn, open) {
   const block = document.getElementById(btn.dataset.target);
+  if (!block) return;
   if (open) {
     block.classList.remove("hidden");
     btn.classList.add("open");
@@ -147,25 +150,10 @@ function openBlockById(blockId) {
   }
 }
 
-document.querySelectorAll(".toggle-btn").forEach(btn => {
-  btn.addEventListener("click", () => {
-    const block = document.getElementById(btn.dataset.target);
-    setToggleState(btn, block.classList.contains("hidden"));
-  });
-});
-
 function autoGrow(el) {
   el.style.height = "auto";
   el.style.height = el.scrollHeight + "px";
 }
-document.querySelectorAll("textarea").forEach(el => {
-  el.addEventListener("input", () => autoGrow(el));
-  autoGrow(el);
-});
-
-document.querySelectorAll("label").forEach(el => {
-  el.title = el.textContent.trim();
-});
 
 function formatDateString(raw) {
   const digits = raw.replace(/\D/g, "").slice(0, 8);
@@ -175,6 +163,7 @@ function formatDateString(raw) {
   if (digits.length > 4) out += "-" + digits.slice(4, 8);
   return out;
 }
+
 function attachDateMask(el) {
   el.addEventListener("input", () => {
     const out = formatDateString(el.value);
@@ -187,28 +176,27 @@ function attachDateMask(el) {
     }
   });
 }
+
+/* ---------- обработчики UI ---------- */
+
+document.querySelectorAll(".toggle-btn").forEach(btn => {
+  btn.addEventListener("click", () => {
+    const block = document.getElementById(btn.dataset.target);
+    if (!block) return;
+    setToggleState(btn, block.classList.contains("hidden"));
+  });
+});
+
+document.querySelectorAll("textarea").forEach(el => {
+  el.addEventListener("input", () => autoGrow(el));
+  autoGrow(el);
+});
+
+document.querySelectorAll("label").forEach(el => {
+  el.title = el.textContent.trim();
+});
+
 document.querySelectorAll("textarea[placeholder='ДД-ММ-ГГГГ']").forEach(attachDateMask);
-
-function updateDoctypeOther() {
-  const v = document.getElementById("f_doctype").value;
-  document.getElementById("block_doctype_other").classList.toggle("hidden", v !== "other");
-}
-
-function updateMoney() {
-  const who = document.getElementById("f_money_who").value;
-  document.getElementById("block_money_self").classList.toggle("hidden", who !== "self");
-  document.getElementById("block_money_sponsor").classList.toggle("hidden", who !== "sponsor");
-}
-
-document.getElementById("f_doctype").addEventListener("change", updateDoctypeOther);
-document.getElementById("f_money_who").addEventListener("change", updateMoney);
-
-document.getElementById("f_marital").value = "single";
-document.getElementById("f_doctype").value = "ordinary";
-document.getElementById("f_purpose").value = "tourism";
-document.getElementById("f_entries").value = "1";
-document.getElementById("f_money_who").value = "self";
-updateMoney();
 
 /* ========================================================= */
 /* ==================== STORAGE ============================ */
@@ -216,33 +204,19 @@ updateMoney();
 
 const STORAGE_KEY = "visaFiller:v1";
 
-/**
- * Собирает текущее состояние формы в объект.
- */
+/** Собирает текущее состояние формы. */
 function collectFormState() {
-  const state = {
-    texts: {},
-    selects: {},
-    checks: {},
-    toggles: {},   // какие блоки раскрыты
-  };
+  const state = { texts: {}, selects: {}, checks: {}, toggles: {} };
 
-  // Все textarea
   document.querySelectorAll("textarea").forEach(el => {
     if (el.id) state.texts[el.id] = el.value;
   });
-
-  // Все select
   document.querySelectorAll("select").forEach(el => {
     if (el.id) state.selects[el.id] = el.value;
   });
-
-  // Все чекбоксы
   document.querySelectorAll("input[type=checkbox]").forEach(el => {
     if (el.id) state.checks[el.id] = el.checked;
   });
-
-  // Состояние раскрытых блоков
   document.querySelectorAll(".toggle-btn").forEach(btn => {
     state.toggles[btn.dataset.target] = btn.classList.contains("open");
   });
@@ -250,30 +224,23 @@ function collectFormState() {
   return state;
 }
 
-/**
- * Применяет состояние к форме.
- */
+/** Применяет состояние к форме. Без событий. */
 function applyFormState(state) {
   if (!state || typeof state !== "object") return;
 
   if (state.texts) {
     for (const [id, value] of Object.entries(state.texts)) {
       const el = document.getElementById(id);
-      if (el) {
-        el.value = value;
-        el.dispatchEvent(new Event("input", { bubbles: true }));
-        autoGrow(el);
-      }
+      if (!el) continue;
+      el.value = value ?? "";
+      autoGrow(el);
     }
   }
 
   if (state.selects) {
     for (const [id, value] of Object.entries(state.selects)) {
       const el = document.getElementById(id);
-      if (el && el.tagName === "SELECT") {
-        el.value = value;
-        el.dispatchEvent(new Event("change", { bubbles: true }));
-      }
+      if (el && el.tagName === "SELECT") el.value = value;
     }
   }
 
@@ -291,55 +258,67 @@ function applyFormState(state) {
       if (btn && block) setToggleState(btn, !!open);
     }
   }
-
-  // После применения селектов — обновить видимость условных блоков
-  updateDoctypeOther();
-  updateMoney();
 }
 
-/**
- * Сохраняет состояние формы в localStorage.
- */
+/** Сохраняет состояние. */
 function saveFormState() {
   try {
-    const state = collectFormState();
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(collectFormState()));
   } catch (e) {
-    console.warn("Не удалось сохранить состояние формы:", e);
+    console.warn("Не удалось сохранить состояние:", e);
   }
 }
 
-/**
- * Загружает состояние формы из localStorage.
- */
+/** Загружает состояние. Возвращает true, если что-то было. */
 function loadFormState() {
   try {
     const raw = localStorage.getItem(STORAGE_KEY);
-    if (!raw) return;
-    const state = JSON.parse(raw);
-    applyFormState(state);
+    if (!raw) return false;
+    applyFormState(JSON.parse(raw));
+    return true;
   } catch (e) {
-    console.warn("Не удалось загрузить состояние формы:", e);
+    console.warn("Не удалось загрузить состояние:", e);
+    return false;
   }
 }
 
-/**
- * Очищает сохранённое состояние.
- */
+/** Очищает сохранённое состояние. */
 function clearFormState() {
   try {
     localStorage.removeItem(STORAGE_KEY);
   } catch (e) {
-    console.warn("Не удалось очистить состояние формы:", e);
+    console.warn("Не удалось очистить состояние:", e);
   }
 }
 
-// Автосохранение: слушаем изменения на всей форме
+/* --- Порядок инициализации --- */
+
+// 1. Дефолты
+document.getElementById("f_marital").value = "single";
+document.getElementById("f_doctype").value = "ordinary";
+document.getElementById("f_purpose").value = "tourism";
+document.getElementById("f_entries").value = "1";
+document.getElementById("f_money_who").value = "self";
+
+// 2. Восстановление из localStorage
+loadFormState();
+
+// 3. Обновляем видимость условных блоков
+(function syncConditionalBlocks() {
+  const dt = document.getElementById("f_doctype").value;
+  document.getElementById("block_doctype_other").classList.toggle("hidden", dt !== "other");
+
+  const who = document.getElementById("f_money_who").value;
+  document.getElementById("block_money_self").classList.toggle("hidden", who !== "self");
+  document.getElementById("block_money_sponsor").classList.toggle("hidden", who !== "sponsor");
+})();
+
+// 4. Автосохранение
 (function attachAutoSave() {
   let timer = null;
   const scheduleSave = () => {
     if (timer) clearTimeout(timer);
-    timer = setTimeout(saveFormState, 300);
+    timer = setTimeout(saveFormState, 200);
   };
 
   document.addEventListener("input", (e) => {
@@ -348,23 +327,25 @@ function clearFormState() {
   document.addEventListener("change", (e) => {
     if (e.target.matches("textarea, input, select")) scheduleSave();
   });
-
-  // Открытие/закрытие блоков тоже сохраняем
   document.querySelectorAll(".toggle-btn").forEach(btn => {
     btn.addEventListener("click", scheduleSave);
   });
 
-  // Перед закрытием страницы — сохранить принудительно
   window.addEventListener("beforeunload", () => {
     if (timer) clearTimeout(timer);
     saveFormState();
   });
+  window.addEventListener("pagehide", () => {
+    if (timer) clearTimeout(timer);
+    saveFormState();
+  });
+  document.addEventListener("visibilitychange", () => {
+    if (document.visibilityState === "hidden") {
+      if (timer) clearTimeout(timer);
+      saveFormState();
+    }
+  });
 })();
-
-// Применяем сохранённое состояние при загрузке.
-// ВАЖНО: сначала дефолтные значения (f_marital, f_doctype и т.д.),
-// затем — восстановление из localStorage, чтобы перезаписать дефолты.
-loadFormState();
 
 /* ========================================================= */
 /* ============ МОДАЛЬНОЕ ОКНО И ПАРСЕР ТЕКСТА ============= */
