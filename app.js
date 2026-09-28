@@ -211,6 +211,162 @@ document.getElementById("f_money_who").value = "self";
 updateMoney();
 
 /* ========================================================= */
+/* ==================== STORAGE ============================ */
+/* ========================================================= */
+
+const STORAGE_KEY = "visaFiller:v1";
+
+/**
+ * Собирает текущее состояние формы в объект.
+ */
+function collectFormState() {
+  const state = {
+    texts: {},
+    selects: {},
+    checks: {},
+    toggles: {},   // какие блоки раскрыты
+  };
+
+  // Все textarea
+  document.querySelectorAll("textarea").forEach(el => {
+    if (el.id) state.texts[el.id] = el.value;
+  });
+
+  // Все select
+  document.querySelectorAll("select").forEach(el => {
+    if (el.id) state.selects[el.id] = el.value;
+  });
+
+  // Все чекбоксы
+  document.querySelectorAll("input[type=checkbox]").forEach(el => {
+    if (el.id) state.checks[el.id] = el.checked;
+  });
+
+  // Состояние раскрытых блоков
+  document.querySelectorAll(".toggle-btn").forEach(btn => {
+    state.toggles[btn.dataset.target] = btn.classList.contains("open");
+  });
+
+  return state;
+}
+
+/**
+ * Применяет состояние к форме.
+ */
+function applyFormState(state) {
+  if (!state || typeof state !== "object") return;
+
+  if (state.texts) {
+    for (const [id, value] of Object.entries(state.texts)) {
+      const el = document.getElementById(id);
+      if (el) {
+        el.value = value;
+        el.dispatchEvent(new Event("input", { bubbles: true }));
+        autoGrow(el);
+      }
+    }
+  }
+
+  if (state.selects) {
+    for (const [id, value] of Object.entries(state.selects)) {
+      const el = document.getElementById(id);
+      if (el && el.tagName === "SELECT") {
+        el.value = value;
+        el.dispatchEvent(new Event("change", { bubbles: true }));
+      }
+    }
+  }
+
+  if (state.checks) {
+    for (const [id, checked] of Object.entries(state.checks)) {
+      const el = document.getElementById(id);
+      if (el && el.type === "checkbox") el.checked = !!checked;
+    }
+  }
+
+  if (state.toggles) {
+    for (const [targetId, open] of Object.entries(state.toggles)) {
+      const btn = document.querySelector(`.toggle-btn[data-target="${targetId}"]`);
+      const block = document.getElementById(targetId);
+      if (btn && block) setToggleState(btn, !!open);
+    }
+  }
+
+  // После применения селектов — обновить видимость условных блоков
+  updateDoctypeOther();
+  updateMoney();
+}
+
+/**
+ * Сохраняет состояние формы в localStorage.
+ */
+function saveFormState() {
+  try {
+    const state = collectFormState();
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+  } catch (e) {
+    console.warn("Не удалось сохранить состояние формы:", e);
+  }
+}
+
+/**
+ * Загружает состояние формы из localStorage.
+ */
+function loadFormState() {
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if (!raw) return;
+    const state = JSON.parse(raw);
+    applyFormState(state);
+  } catch (e) {
+    console.warn("Не удалось загрузить состояние формы:", e);
+  }
+}
+
+/**
+ * Очищает сохранённое состояние.
+ */
+function clearFormState() {
+  try {
+    localStorage.removeItem(STORAGE_KEY);
+  } catch (e) {
+    console.warn("Не удалось очистить состояние формы:", e);
+  }
+}
+
+// Автосохранение: слушаем изменения на всей форме
+(function attachAutoSave() {
+  let timer = null;
+  const scheduleSave = () => {
+    if (timer) clearTimeout(timer);
+    timer = setTimeout(saveFormState, 300);
+  };
+
+  document.addEventListener("input", (e) => {
+    if (e.target.matches("textarea, input, select")) scheduleSave();
+  });
+  document.addEventListener("change", (e) => {
+    if (e.target.matches("textarea, input, select")) scheduleSave();
+  });
+
+  // Открытие/закрытие блоков тоже сохраняем
+  document.querySelectorAll(".toggle-btn").forEach(btn => {
+    btn.addEventListener("click", scheduleSave);
+  });
+
+  // Перед закрытием страницы — сохранить принудительно
+  window.addEventListener("beforeunload", () => {
+    if (timer) clearTimeout(timer);
+    saveFormState();
+  });
+})();
+
+// Применяем сохранённое состояние при загрузке.
+// ВАЖНО: сначала дефолтные значения (f_marital, f_doctype и т.д.),
+// затем — восстановление из localStorage, чтобы перезаписать дефолты.
+loadFormState();
+
+/* ========================================================= */
 /* ============ МОДАЛЬНОЕ ОКНО И ПАРСЕР ТЕКСТА ============= */
 /* ========================================================= */
 
@@ -388,23 +544,8 @@ function normalizeLabel(s) {
     .replace(/\s*:\s*$/, "");
 }
 
-/* убираем номер в начале, если он есть */
 function stripNumber(s) {
   return s.replace(/^\d+\.\s*/, "");
-}
-
-/* строим карты по двум ключам: с номером и без него.
-   При конфликте (две разные метки с одинаковым названием без номера)
-   первая запись в массиве побеждает. */
-function buildMap(list) {
-  const map = {};
-  for (const e of list) {
-    const withNum = normalizeLabel(e.label);
-    const withoutNum = stripNumber(withNum);
-    if (!(withNum in map)) map[withNum] = e;
-    if (!(withoutNum in map)) map[withoutNum] = e;
-  }
-  return map;
 }
 
 const TEXT_MAP_LABEL = {};
@@ -529,6 +670,7 @@ document.getElementById("modalApply").addEventListener("click", () => {
   }
 
   modal.classList.add("hidden");
+  saveFormState();
 });
 
 /* ========================================================= */
@@ -636,6 +778,11 @@ runBtn.onclick = async () => {
     URL.revokeObjectURL(urlOut);
 
     statusEl.textContent = `Готово. Заполнено полей: ${filled}.`;
+
+    /* === STORAGE: сброс после скачивания === */
+    clearFormState();
+    /* ====================================== */
+
   } catch (e) {
     console.error(e);
     statusEl.textContent = "Ошибка: " + e.message;
