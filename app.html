@@ -1,0 +1,457 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<title>Заполнение анкеты</title>
+<style>
+  * { box-sizing: border-box; }
+  html, body { margin: 0; padding: 0; height: 100%; }
+  body {
+    font: 15px system-ui;
+    background: #fafafa;
+    display: flex;
+    height: 100vh;
+    overflow: hidden;
+  }
+
+  /* вертикальные кнопки по бокам */
+  .side-btn {
+    flex: 1 1 auto;
+    min-width: 60px;
+    border: none;
+    cursor: pointer;
+    padding: 0;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    user-select: none;
+  }
+  .side-left {
+    background: #d8d8d8;
+    border-right: 1px solid #bcbcbc;
+    color: #555;
+  }
+  .side-left:hover { background: #c8c8c8; color: #222; }
+  .side-right {
+    background: #c6d8e2;
+    border-left: 1px solid #a6bcc8;
+    color: #35505c;
+  }
+  .side-right:hover { background: #b4cad6; color: #1a2f38; }
+
+  .side-btn svg {
+    width: 44px;
+    height: 44px;
+    display: block;
+  }
+
+  /* основной контент */
+  .content {
+    flex: 0 1 1000px;
+    max-width: 1000px;
+    padding: 20px 20px 60px;
+    overflow-y: auto;
+  }
+
+  /* цветные секции (потемнее) */
+  .section {
+    border-radius: 8px;
+    padding: 12px 14px;
+    margin-bottom: 14px;
+  }
+  .sec-red    { background: #ffc4c4; }
+  .sec-orange { background: #ffd4a8; }
+  .sec-yellow { background: #ffeda1; }
+  .sec-green  { background: #c2e3b5; }
+  .sec-blue   { background: #b8d9f5; }
+
+  .row { display: grid; gap: 10px 14px; margin-bottom: 10px; }
+  .r1 { grid-template-columns: 1fr; }
+  .r2 { grid-template-columns: 1fr 1fr; }
+  .r3 { grid-template-columns: 1fr 1fr 1fr; }
+  .r4 { grid-template-columns: 1fr 1fr 1fr 1fr; }
+
+  .money-checks { display: flex; flex-wrap: wrap; gap: 14px; padding: 8px 0; }
+  .money-checks label {
+    display: flex; align-items: center; gap: 6px;
+    font-size: 14px; margin: 0; color: #222;
+    white-space: normal; overflow: visible; text-overflow: clip;
+  }
+  
+  label {
+    display: block; font-size: 14px; font-weight: 600; color: #222; margin-bottom: 3px;
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  }
+
+  input[type=text], select, textarea {
+    width: 100%; padding: 10px 12px; font: inherit;
+    border: 1px solid #ccc; border-radius: 4px;
+    resize: vertical; min-height: 42px;
+    font-family: inherit;
+    background: #fff;
+  }
+  textarea { overflow: hidden; }
+  input[type=text]:focus, select:focus, textarea:focus {
+    outline: 2px solid #4a90e2; border-color: #4a90e2;
+  }
+
+  button.flat { padding: 12px 24px; font-size: 15px; cursor: pointer; }
+
+  .toggle-btn {
+    background: rgba(255,255,255,.7); border: 1px solid #999; border-radius: 4px;
+    padding: 10px 14px; font-size: 14px; cursor: pointer; width: 100%;
+    text-align: left; margin-bottom: 4px;
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+    color: #333;
+  }
+  .toggle-btn::before { content: "▸ "; color: #666; }
+  .toggle-btn:hover { background: #fff; }
+
+  .toggle-btn.open {
+    background: #4a90e2; color: #fff; border-color: #4a90e2;
+  }
+  .toggle-btn.open::before { content: "▾ "; color: #fff; }
+  .toggle-btn.open:hover { background: #3a7bc8; }
+
+  .hidden { display: none !important; }
+
+  #status { margin-top: 14px; font-weight: bold; color: #2a7; }
+
+  .modal-overlay {
+    position: fixed; inset: 0; background: rgba(0,0,0,.5);
+    display: flex; align-items: center; justify-content: center; z-index: 100;
+    overscroll-behavior: contain;
+  }
+  .modal {
+    background: #fff; border-radius: 8px; padding: 20px;
+    width: min(720px, 92vw); max-height: 88vh; display: flex; flex-direction: column;
+    box-shadow: 0 10px 40px rgba(0,0,0,.3);
+  }
+  .modal h3 { margin: 0 0 12px; font-size: 16px; }
+  .modal textarea {
+    flex: 1; min-height: 300px; font: 13px/1.5 ui-monospace, monospace;
+    padding: 10px; resize: vertical;
+    overflow-y: scroll;
+    scrollbar-width: thin;
+  }
+  .modal textarea::-webkit-scrollbar { width: 10px; }
+  .modal textarea::-webkit-scrollbar-thumb {
+    background: #bbb; border-radius: 5px;
+  }
+  .modal textarea::-webkit-scrollbar-thumb:hover { background: #888; }
+  .modal textarea.invalid { border-color: #d33; outline: 2px solid #d33; }
+  .modal-actions { display: flex; gap: 10px; margin-top: 12px; justify-content: flex-end; }
+  .modal-error { color: #d33; font-size: 13px; margin-top: 6px; white-space: pre-line; }
+</style>
+</head>
+<body>
+
+<button class="side-btn side-left" id="loadText" title="Загрузить из текста">
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"
+       stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+    <path d="M12 19V5"/>
+    <path d="M5 12l7-7 7 7"/>
+  </svg>
+</button>
+
+<div class="content">
+
+  <div class="section sec-red">
+    <div class="row r3">
+      <div><label>1. Фамилия</label><textarea id="f_surname" rows="1"></textarea></div>
+      <div><label>2. Фамилия при рождении</label><textarea id="f_surname_birth" rows="1"></textarea></div>
+      <div><label>3. Имя/имена</label><textarea id="f_given_names" rows="1"></textarea></div>
+    </div>
+    <div class="row r3">
+      <div><label>4. Дата рождения</label><textarea id="f_dob" rows="1" placeholder="ДД-ММ-ГГГГ"></textarea></div>
+      <div><label>5. Место рождения</label><textarea id="f_pob" rows="1"></textarea></div>
+      <div><label>6. Страна рождения</label><textarea id="f_cob" rows="1"></textarea></div>
+    </div>
+    <div class="row r3">
+      <div><label>7. Гражданство в настоящее время</label><textarea id="f_citizenship_now" rows="1"></textarea></div>
+      <div><label>Гражданство при рождении</label><textarea id="f_citizenship_birth" rows="1"></textarea></div>
+      <div><label>Иное гражданство</label><textarea id="f_citizenship_other" rows="1"></textarea></div>
+    </div>
+    <div class="row r2">
+      <div><label>8. Пол</label>
+        <select id="f_sex">
+          <option value=""></option>
+          <option value="m">Мужской</option>
+          <option value="f">Женский</option>
+          <option value="x">Иной</option>
+        </select>
+      </div>
+      <div><label>9. Семейное положение</label>
+        <select id="f_marital">
+          <option value="single">Холост / не замужем</option>
+          <option value="married">Женат/замужем</option>
+          <option value="partner">В зарегистрированном партнёрстве</option>
+          <option value="separated">Не проживает с супругой/-ом</option>
+          <option value="divorced">Разведён/-а</option>
+          <option value="widowed">Вдовец/вдова</option>
+          <option value="other">Иное</option>
+        </select>
+      </div>
+    </div>
+    <button class="toggle-btn" data-target="block_minor">10. Для несовершеннолетних (развернуть)</button>
+    <div class="row r1 hidden" id="block_minor">
+      <div><label>10. Для несовершеннолетних: ФИО, адрес, телефон, email, гражданство законного представителя</label>
+        <textarea id="f_minor" rows="2"></textarea>
+      </div>
+    </div>
+  </div>
+
+  <div class="section sec-orange">
+    <button class="toggle-btn" data-target="block_id">11. Идентификационный номер (развернуть)</button>
+    <div class="row r1 hidden" id="block_id">
+      <div><textarea id="f_id" rows="1"></textarea></div>
+    </div>
+
+    <div class="row r4">
+      <div><label>12. Тип проездного документа</label>
+        <select id="f_doctype">
+          <option value="ordinary">обычный</option>
+          <option value="diplomatic">дипломатический</option>
+          <option value="service">служебный</option>
+          <option value="official">официальный</option>
+          <option value="special">особый</option>
+          <option value="other">Иной</option>
+        </select>
+      </div>
+      <div><label>13. Номер</label><textarea id="f_passport" rows="1"></textarea></div>
+      <div><label>14. Дата выдачи</label><textarea id="f_passport_issue" rows="1" placeholder="ДД-ММ-ГГГГ"></textarea></div>
+      <div><label>15. Действителен до</label><textarea id="f_passport_valid" rows="1" placeholder="ДД-ММ-ГГГГ"></textarea></div>
+    </div>
+    <div class="row r1 hidden" id="block_doctype_other">
+      <div><label>12. Иной тип документа (указать)</label><textarea id="f_doctype_other" rows="1"></textarea></div>
+    </div>
+    <div class="row r1">
+      <div><label>16. Кем выдан (страна)</label><textarea id="f_passport_issuer" rows="1"></textarea></div>
+    </div>
+
+    <button class="toggle-btn" data-target="block_eu">17–18. Персональные данные члена семьи — гражданина ЕС (развернуть)</button>
+    <div class="hidden" id="block_eu">
+      <div class="row r3">
+        <div><label>17. Фамилия</label><textarea id="f_eu_surname" rows="1"></textarea></div>
+        <div><label>17. Имя/имена</label><textarea id="f_eu_given" rows="1"></textarea></div>
+        <div><label>17. Дата рождения</label><textarea id="f_eu_dob" rows="1" placeholder="ДД-ММ-ГГГГ"></textarea></div>
+      </div>
+      <div class="row r3">
+        <div><label>17. Гражданство</label><textarea id="f_eu_cit" rows="1"></textarea></div>
+        <div><label>17. Номер документа</label><textarea id="f_eu_doc" rows="1"></textarea></div>
+        <div><label>18. Родственная связь</label>
+          <select id="f_relation">
+            <option value=""></option>
+            <option value="spouse">супруг(-а)</option>
+            <option value="child">ребенок</option>
+            <option value="grandchild">внук(-чка)</option>
+            <option value="dependent">экономически зависимый родственник по восходящей линии</option>
+            <option value="partner">зарегистрированный партнер</option>
+            <option value="other">иное</option>
+          </select>
+        </div>
+      </div>
+      <div class="row r1">
+        <div><label>18. Иное (указать)</label><textarea id="f_relation_other" rows="1"></textarea></div>
+      </div>
+    </div>
+
+    <div class="row r1">
+      <div><label>19. Домашний адрес и email заявителя</label><textarea id="f_address" rows="1"></textarea></div>
+    </div>
+    <div class="row r1">
+      <div><label>19. Номер телефона</label><textarea id="f_phone" rows="1"></textarea></div>
+    </div>
+
+    <button class="toggle-btn" data-target="block_residence">20. Страна проживания, если не является страной гражданства (развернуть)</button>
+    <div class="hidden" id="block_residence">
+      <div class="row r3">
+        <div><label>20. Страна проживания</label>
+          <select id="f_residence">
+            <option value=""></option>
+            <option value="no">Нет</option>
+            <option value="yes">Да</option>
+          </select>
+        </div>
+        <div><label>20. № вида на жительство</label><textarea id="f_residence_no" rows="1"></textarea></div>
+        <div><label>20. Действителен до</label><textarea id="f_residence_until" rows="1" placeholder="ДД-ММ-ГГГГ"></textarea></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="section sec-yellow">
+    <div class="row r1">
+      <div><label>21. Профессиональная деятельность</label><textarea id="f_profession" rows="1"></textarea></div>
+    </div>
+    <div class="row r1">
+      <div><label>22. Работодатель: адрес и телефон</label><textarea id="f_employer" rows="1"></textarea></div>
+    </div>
+  </div>
+
+  <div class="section sec-green">
+    <div class="row r4">
+      <div><label>23. Цель поездки</label>
+        <select id="f_purpose">
+          <option value="tourism">туризм</option>
+          <option value="business">деловая</option>
+          <option value="visit">посещение родственников или друзей</option>
+          <option value="culture">культура</option>
+          <option value="sport">спорт</option>
+          <option value="official">официальная</option>
+          <option value="medical">лечение</option>
+          <option value="study">учеба</option>
+          <option value="transit">транзитный перелет</option>
+          <option value="other">иная</option>
+        </select>
+      </div>
+      <div><label>25. Страна основного пребывания</label><textarea id="f_main_country" rows="1"></textarea></div>
+      <div><label>26. Страна первого въезда</label><textarea id="f_first_entry" rows="1"></textarea></div>
+      <div><label>23. Иная цель (указать)</label><textarea id="f_purpose_other" rows="1"></textarea></div>
+    </div>
+
+    <button class="toggle-btn" data-target="block_purpose_extra">24. Дополнительные сведения о цели поездки (развернуть)</button>
+    <div class="row r1 hidden" id="block_purpose_extra">
+      <div><textarea id="f_purpose_extra" rows="2"></textarea></div>
+    </div>
+
+    <div class="row r3">
+      <div><label>27. Виза запрашивается для</label>
+        <select id="f_entries">
+          <option value="1">однократного въезда</option>
+          <option value="2">двукратного въезда</option>
+          <option value="M">многократного въезда</option>
+        </select>
+      </div>
+      <div><label>28. Дата въезда</label><textarea id="f_date_in" rows="1" placeholder="ДД-ММ-ГГГГ"></textarea></div>
+      <div><label>28. Дата выезда</label><textarea id="f_date_out" rows="1" placeholder="ДД-ММ-ГГГГ"></textarea></div>
+    </div>
+
+    <div class="row r3">
+      <div><label>29. Отпечатки пальцев сданы ранее</label>
+        <select id="f_fp">
+          <option value=""></option>
+          <option value="no">нет</option>
+          <option value="yes">да</option>
+        </select>
+      </div>
+      <div><label>29. Дата сдачи отпечатков</label><textarea id="f_fp_date" rows="1" placeholder="ДД-ММ-ГГГГ"></textarea></div>
+      <div><label>29. Номер визовой наклейки</label><textarea id="f_fp_sticker" rows="1"></textarea></div>
+    </div>
+
+    <button class="toggle-btn" data-target="block_final">30. Разрешение на въезд в страну конечного следования (развернуть)</button>
+    <div class="hidden" id="block_final">
+      <div class="row r2">
+        <div><label>30. Действительно с</label><textarea id="f_final_from" rows="1" placeholder="ДД-ММ-ГГГГ"></textarea></div>
+        <div><label>30. Действительно до</label><textarea id="f_final_to" rows="1" placeholder="ДД-ММ-ГГГГ"></textarea></div>
+      </div>
+    </div>
+
+    <div class="row r2">
+      <div><label>31. Фамилия и имя приглашающего лица/лиц (название гостиницы)</label><textarea id="f_host_name" rows="1"></textarea></div>
+      <div><label>31. Телефон приглашающего лица</label><textarea id="f_host_phone" rows="1"></textarea></div>
+    </div>
+    <div class="row r1">
+      <div><label>31. Адрес и email приглашающего лица / гостиницы</label><textarea id="f_host" rows="1"></textarea></div>
+    </div>
+
+    <button class="toggle-btn" data-target="block_company">32. Приглашающая компания (развернуть)</button>
+    <div class="hidden" id="block_company">
+      <div class="row r1">
+        <div><label>32. Название и адрес приглашающей компании</label><textarea id="f_company" rows="1"></textarea></div>
+      </div>
+      <div class="row r2">
+        <div><label>32. Контактное лицо компании</label><textarea id="f_company_contact" rows="1"></textarea></div>
+        <div><label>32. Телефон компании</label><textarea id="f_company_phone" rows="1"></textarea></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="section sec-blue">
+    <div class="row r1">
+      <div><label>33. Средства: кто оплачивает</label>
+        <select id="f_money_who">
+          <option value="self">Сам заявитель</option>
+          <option value="sponsor">Спонсор (приглашающее лицо, компания, организация)</option>
+        </select>
+      </div>
+    </div>
+
+    <div id="block_money_self">
+      <div class="row r1">
+        <div><label>Средства (сам заявитель)</label>
+          <div class="money-checks">
+            <label><input type="checkbox" id="c_cash"> наличные</label>
+            <label><input type="checkbox" id="c_checks"> дорожные чеки</label>
+            <label><input type="checkbox" id="c_card"> кредитная карта</label>
+            <label><input type="checkbox" id="c_lodging"> проживание предоплачено</label>
+            <label><input type="checkbox" id="c_transport"> транспорт предоплачен</label>
+            <label><input type="checkbox" id="c_other_money"> иные</label>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div id="block_money_sponsor" class="hidden">
+      <div class="row r1">
+        <div><label>Спонсор (указать)</label><textarea id="f_sponsor_name" rows="1"></textarea></div>
+      </div>
+      <div class="row r1">
+        <div><label>Средства (спонсор)</label>
+          <div class="money-checks">
+            <label><input type="checkbox" id="s_mentioned"> упомянутые в п. 30 и 31</label>
+            <label><input type="checkbox" id="s_other"> иные</label>
+            <label><input type="checkbox" id="s_cash"> наличные</label>
+            <label><input type="checkbox" id="s_lodging"> обеспечивается проживание</label>
+            <label><input type="checkbox" id="s_expenses"> оплачиваются все расходы</label>
+            <label><input type="checkbox" id="s_transport"> транспорт предоплачен</label>
+            <label><input type="checkbox" id="s_other2"> иные (указать)</label>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <button class="toggle-btn" data-target="block_filler">34. Кто заполняет форму (развернуть)</button>
+    <div class="hidden" id="block_filler">
+      <div class="row r2">
+        <div><label>34. Фамилия и имя заполняющего</label><textarea id="f_filler_name" rows="1"></textarea></div>
+        <div><label>34. Телефон заполняющего</label><textarea id="f_filler_phone" rows="1"></textarea></div>
+      </div>
+      <div class="row r1">
+        <div><label>34. Адрес и email заполняющего</label><textarea id="f_filler_addr" rows="1"></textarea></div>
+      </div>
+    </div>
+
+    <div class="row r1" style="margin-top:16px">
+      <div><label>Место и дата подписи</label><textarea id="f_sign_place_date" rows="1"></textarea></div>
+    </div>
+  </div>
+
+  <div id="status"></div>
+</div>
+
+<button class="side-btn side-right" id="run" title="Заполнить и скачать">
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"
+       stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+    <path d="M12 5v14"/>
+    <path d="M19 12l-7 7-7-7"/>
+  </svg>
+</button>
+
+<div id="modal" class="modal-overlay hidden">
+  <div class="modal">
+    <h3>Вставь текст с данными</h3>
+    <textarea id="modalText" placeholder="1. Фамилия: IVANOV
+2. Фамилия при рождении: PETROV
+3. Имя/имена: IVAN FEDOR"></textarea>
+    <div class="modal-error hidden" id="modalError"></div>
+    <div class="modal-actions">
+      <button id="modalCancel">Отмена</button>
+      <button id="modalApply">Загрузить</button>
+    </div>
+  </div>
+</div>
+
+<script src="pdf-lib.min.js"></script>
+<script src="app.js"></script>
+</body>
+</html>
