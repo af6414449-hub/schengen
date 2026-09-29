@@ -125,6 +125,7 @@ function allToggleNames() {
 
 function setToggleState(btn, open) {
   const block = document.getElementById(btn.dataset.target);
+  if (!block) return;
   if (open) {
     block.classList.remove("hidden");
     btn.classList.add("open");
@@ -150,6 +151,7 @@ function openBlockById(blockId) {
 document.querySelectorAll(".toggle-btn").forEach(btn => {
   btn.addEventListener("click", () => {
     const block = document.getElementById(btn.dataset.target);
+    if (!block) return;
     setToggleState(btn, block.classList.contains("hidden"));
   });
 });
@@ -392,17 +394,6 @@ function stripNumber(s) {
   return s.replace(/^\d+\.\s*/, "");
 }
 
-function buildMap(list) {
-  const map = {};
-  for (const e of list) {
-    const withNum = normalizeLabel(e.label);
-    const withoutNum = stripNumber(withNum);
-    if (!(withNum in map)) map[withNum] = e;
-    if (!(withoutNum in map)) map[withoutNum] = e;
-  }
-  return map;
-}
-
 const TEXT_MAP_LABEL = {};
 for (const e of LABEL_TO_TARGET) {
   const withNum = normalizeLabel(e.label);
@@ -535,17 +526,22 @@ const runBtn = document.getElementById("run");
 const statusEl = document.getElementById("status");
 
 runBtn.onclick = async () => {
-  statusEl.textContent = "";
+  const log = (msg) => { statusEl.textContent = msg; };
+  log("1. старт");
   try {
+    log("2. качаю form.pdf");
     const url = "form.pdf";
-    const bytes = await fetch(url).then(r => r.arrayBuffer());
+    const resp = await fetch(url);
+    log("3. ответ: " + resp.status);
+    const bytes = await resp.arrayBuffer();
+    log("4. получено байт: " + bytes.byteLength);
 
     const { PDFDocument } = PDFLib;
     const doc = await PDFDocument.load(bytes);
+    log("5. PDF загружен");
     const form = doc.getForm();
 
     let filled = 0;
-
     for (const [id, fieldName] of Object.entries(TEXT_MAP)) {
       const el = document.getElementById(id);
       if (!el) continue;
@@ -553,7 +549,6 @@ runBtn.onclick = async () => {
       if (!value) continue;
       if (PHONE_FIELDS.has(id)) value = value.replace(/[()\s\-]/g, "");
       if (LEADING_NEWLINE.has(id)) value = "\n" + value;
-
       try {
         const f = form.getTextField(fieldName);
         f.setFontSize(9);
@@ -569,11 +564,10 @@ runBtn.onclick = async () => {
           f.enableMultiline();
           f.setText(value);
           filled++;
-        } catch (e2) {
-          console.warn("text FAIL", fieldName, e.message, "| fallback:", e2.message);
-        }
+        } catch (e2) {}
       }
     }
+    log("6. текстовые поля: " + filled);
 
     for (const name of allToggleNames()) {
       try { form.getCheckBox(name).uncheck(); } catch (e) {}
@@ -586,32 +580,31 @@ runBtn.onclick = async () => {
       if (!val) continue;
       const fieldName = map[val];
       if (!fieldName) continue;
-      try {
-        form.getCheckBox(fieldName).check();
-        filled++;
-      } catch (e) {
-        console.warn("select FAIL", id, "->", fieldName, e.message);
-      }
+      try { form.getCheckBox(fieldName).check(); } catch (e) {}
     }
 
     const who = document.getElementById("f_money_who").value;
     if (who === "self") {
-      try { form.getCheckBox("toggle_1_2").check(); filled++; } catch (e) {}
+      try { form.getCheckBox("toggle_1_2").check(); } catch (e) {}
       for (const [id, fieldName] of Object.entries(CHECK_MAP_SELF)) {
         const el = document.getElementById(id);
         if (!el || !el.checked) continue;
-        try { form.getCheckBox(fieldName).check(); filled++; } catch (e) {}
+        try { form.getCheckBox(fieldName).check(); } catch (e) {}
       }
     } else if (who === "sponsor") {
-      try { form.getCheckBox("toggle_8_2").check(); filled++; } catch (e) {}
+      try { form.getCheckBox("toggle_8_2").check(); } catch (e) {}
       for (const [id, fieldName] of Object.entries(CHECK_MAP_SPONSOR)) {
         const el = document.getElementById(id);
         if (!el || !el.checked) continue;
-        try { form.getCheckBox(fieldName).check(); filled++; } catch (e) {}
+        try { form.getCheckBox(fieldName).check(); } catch (e) {}
       }
     }
+    log("7. галочки проставлены");
 
+    log("8. сохраняю PDF");
     const out = await doc.save();
+    log("9. PDF готов, байт: " + out.byteLength);
+
     const blob = new Blob([out], { type: "application/pdf" });
     const urlOut = URL.createObjectURL(blob);
     const a = document.createElement("a");
@@ -625,12 +618,15 @@ runBtn.onclick = async () => {
     const yyyy = d.getFullYear();
     const fullName = [given, surname].filter(Boolean).join(" ") || "без имени";
     a.download = `Анкета (${fullName}) ${dd}-${mm}-${yyyy}.pdf`;
-    a.click();
-    URL.revokeObjectURL(urlOut);
 
-    statusEl.textContent = `Готово. Заполнено полей: ${filled}.`;
+    log("10. вызываю click");
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    log("11. click выполнен, filled=" + filled);
+
+    setTimeout(() => URL.revokeObjectURL(urlOut), 60000);
   } catch (e) {
-    console.error(e);
-    statusEl.textContent = "Ошибка: " + e.message;
+    statusEl.textContent = "ОШИБКА: " + (e && e.message ? e.message : e);
   }
 };
