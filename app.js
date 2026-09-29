@@ -1,54 +1,53 @@
-/* ---------- текстовые поля ---------- */
 const TEXT_MAP = {
-  f_surname:          "fill_6",
-  f_surname_birth:    "fill_7",
-  f_given_names:      "fill_8",
-  f_dob:              "fill_9",
-  f_pob:              "Text1",
-  f_cob:              "fill_10",
-  f_citizenship_now:  "Text2",
-  f_citizenship_birth:"Text3",
-  f_citizenship_other:"Text4",
-  f_minor:            "Text18",
-  f_id:               "fill_14",
-  f_doctype_other:    "Text19",
-  f_passport:         "fill_16",
-  f_passport_issue:   "fill_17",
-  f_passport_valid:   "fill_18",
-  f_passport_issuer:  "fill_19",
-  f_eu_surname:       "fill_20",
-  f_eu_given:         "fill_21",
-  f_eu_dob:           "fill_22",
-  f_eu_cit:           "fill_23",
-  f_eu_doc:           "fill_24",
-  f_relation_other:   "Text20",
-  f_address:          "Text21",
-  f_phone:            "fill_5_2",
-  f_residence_no:     "fill_1",
-  f_residence_until:  "fill_2",
-  f_profession:       "fill_7_2",
-  f_employer:         "Text22",
-  f_purpose_other:    "Text23",
-  f_purpose_extra:    "fill_10_2",
-  f_main_country:     "fill_11_2",
-  f_first_entry:      "fill_12_2",
-  f_date_in:          "Text7",
-  f_date_out:         "Text8",
-  f_fp_date:          "fill_3",
-  f_fp_sticker:       "fill_14_2",
-  f_final_from:       "Text9",
-  f_final_to:         "Text10",
-  f_host_name:        "Text24",
-  f_host:             "Text25",
-  f_host_phone:       "fill_17_2",
-  f_company:          "Text27",
-  f_company_contact:  "Text26",
-  f_company_phone:    "fill_20_2",
-  f_filler_name:      "Text11",
-  f_filler_addr:      "Text12",
-  f_filler_phone:     "Text13",
-  f_sign_place_date:  "fill_5_3",
-  f_sponsor_name:     "undefined_3",
+  f_surname: "fill_6",
+  f_surname_birth: "fill_7",
+  f_given_names: "fill_8",
+  f_dob: "fill_9",
+  f_pob: "Text1",
+  f_cob: "fill_10",
+  f_citizenship_now: "Text2",
+  f_citizenship_birth: "Text3",
+  f_citizenship_other: "Text4",
+  f_minor: "Text18",
+  f_id: "fill_14",
+  f_doctype_other: "Text19",
+  f_passport: "fill_16",
+  f_passport_issue: "fill_17",
+  f_passport_valid: "fill_18",
+  f_passport_issuer: "fill_19",
+  f_eu_surname: "fill_20",
+  f_eu_given: "fill_21",
+  f_eu_dob: "fill_22",
+  f_eu_cit: "fill_23",
+  f_eu_doc: "fill_24",
+  f_relation_other: "Text20",
+  f_address: "Text21",
+  f_phone: "fill_5_2",
+  f_residence_no: "fill_1",
+  f_residence_until: "fill_2",
+  f_profession: "fill_7_2",
+  f_employer: "Text22",
+  f_purpose_other: "Text23",
+  f_purpose_extra: "fill_10_2",
+  f_main_country: "fill_11_2",
+  f_first_entry: "fill_12_2",
+  f_date_in: "Text7",
+  f_date_out: "Text8",
+  f_fp_date: "fill_3",
+  f_fp_sticker: "fill_14_2",
+  f_final_from: "Text9",
+  f_final_to: "Text10",
+  f_host_name: "Text24",
+  f_host: "Text25",
+  f_host_phone: "fill_17_2",
+  f_company: "Text27",
+  f_company_contact: "Text26",
+  f_company_phone: "fill_20_2",
+  f_filler_name: "Text11",
+  f_filler_addr: "Text12",
+  f_filler_phone: "Text13",
+  f_sign_place_date: "fill_5_3",
+  f_sponsor_name: "undefined_3",
 };
 
 const LEADING_NEWLINE = new Set([
@@ -71,23 +70,23 @@ const PHONE_FIELDS = new Set([
 const SELECT_TO_CHECK = [
   { id: "f_sex", map: { m: "toggle_21", f: "undefined", x: "undefined_2" } },
   { id: "f_marital", map: {
-      single: "toggle_24", married: "toggle_25", partner: "toggle_26",
-      separated: "toggle_27", divorced: "toggle_28", widowed: "toggle_29",
-      other: "toggle_30",
+    single: "toggle_24", married: "toggle_25", partner: "toggle_26",
+    separated: "toggle_27", divorced: "toggle_28", widowed: "toggle_29",
+    other: "toggle_30",
   }},
   { id: "f_doctype", map: {
-      ordinary: "toggle_31", diplomatic: "toggle_32", service: "toggle_33",
-      official: "toggle_34", special: "toggle_35", other: "toggle_36",
+    ordinary: "toggle_31", diplomatic: "toggle_32", service: "toggle_33",
+    official: "toggle_34", special: "toggle_35", other: "toggle_36",
   }},
   { id: "f_relation", map: {
-      spouse: "toggle_1", child: "toggle_2", grandchild: "toggle_3",
-      dependent: "toggle_4", partner: "toggle_5", other: "toggle_6",
+    spouse: "toggle_1", child: "toggle_2", grandchild: "toggle_3",
+    dependent: "toggle_4", partner: "toggle_5", other: "toggle_6",
   }},
   { id: "f_purpose", map: {
-      tourism: "toggle_9", business: "toggle_10", visit: "toggle_11",
-      culture: "toggle_12", sport: "toggle_13", official: "toggle_14",
-      medical: "toggle_15", study: "toggle_16", transit: "toggle_17",
-      other: "toggle_18",
+    tourism: "toggle_9", business: "toggle_10", visit: "toggle_11",
+    culture: "toggle_12", sport: "toggle_13", official: "toggle_14",
+    medical: "toggle_15", study: "toggle_16", transit: "toggle_17",
+    other: "toggle_18",
   }},
   { id: "f_residence", map: { no: "toggle_7", yes: "toggle_8" } },
   { id: "f_fp", map: { no: "toggle_22", yes: "toggle_23" } },
@@ -95,22 +94,22 @@ const SELECT_TO_CHECK = [
 ];
 
 const CHECK_MAP_SELF = {
-  c_cash:        "toggle_2_2",
-  c_checks:      "toggle_3_2",
-  c_card:        "toggle_4_2",
-  c_lodging:     "toggle_5_2",
-  c_transport:   "toggle_6_2",
+  c_cash: "toggle_2_2",
+  c_checks: "toggle_3_2",
+  c_card: "toggle_4_2",
+  c_lodging: "toggle_5_2",
+  c_transport: "toggle_6_2",
   c_other_money: "toggle_7_2",
 };
 
 const CHECK_MAP_SPONSOR = {
-  s_mentioned:  "toggle_9_2",
-  s_other:      "toggle_10_2",
-  s_cash:       "toggle_11_2",
-  s_lodging:    "toggle_12_2",
-  s_expenses:   "toggle_13_2",
-  s_transport:  "toggle_14_2",
-  s_other2:     "toggle_15_2",
+  s_mentioned: "toggle_9_2",
+  s_other: "toggle_10_2",
+  s_cash: "toggle_11_2",
+  s_lodging: "toggle_12_2",
+  s_expenses: "toggle_13_2",
+  s_transport: "toggle_14_2",
+  s_other2: "toggle_15_2",
 };
 
 function allToggleNames() {
@@ -122,8 +121,6 @@ function allToggleNames() {
   names.add("toggle_8_2");
   return [...names];
 }
-
-/* ---------- вспомогательные функции UI ---------- */
 
 function setToggleState(btn, open) {
   const block = document.getElementById(btn.dataset.target);
@@ -177,8 +174,6 @@ function attachDateMask(el) {
   });
 }
 
-/* ---------- обработчики UI ---------- */
-
 document.querySelectorAll(".toggle-btn").forEach(btn => {
   btn.addEventListener("click", () => {
     const block = document.getElementById(btn.dataset.target);
@@ -198,13 +193,8 @@ document.querySelectorAll("label").forEach(el => {
 
 document.querySelectorAll("textarea[placeholder='ДД-ММ-ГГГГ']").forEach(attachDateMask);
 
-/* ========================================================= */
-/* ==================== STORAGE ============================ */
-/* localStorage: сохраняется между сессиями, переживает F5.  */
-/* Очищается после скачивания PDF.                            */
-/* ========================================================= */
-
 const STORAGE_KEY = "visaFiller:v1";
+let storageDisabled = false;
 
 function collectFormState() {
   const s = { texts: {}, selects: {}, checks: {}, toggles: {} };
@@ -236,19 +226,21 @@ function applyFormState(s) {
 }
 
 function saveFormState() {
+  if (storageDisabled) return;
   try { localStorage.setItem(STORAGE_KEY, JSON.stringify(collectFormState())); } catch (e) {}
 }
+
 function loadFormState() {
   try {
     const raw = localStorage.getItem(STORAGE_KEY);
     if (raw) applyFormState(JSON.parse(raw));
   } catch (e) {}
 }
+
 function clearFormState() {
   try { localStorage.removeItem(STORAGE_KEY); } catch (e) {}
 }
 
-/* --- init --- */
 document.getElementById("f_marital").value = "single";
 document.getElementById("f_doctype").value = "ordinary";
 document.getElementById("f_purpose").value = "tourism";
@@ -261,229 +253,205 @@ document.getElementById("block_doctype_other").classList.toggle("hidden", docume
 document.getElementById("block_money_self").classList.toggle("hidden", document.getElementById("f_money_who").value !== "self");
 document.getElementById("block_money_sponsor").classList.toggle("hidden", document.getElementById("f_money_who").value !== "sponsor");
 
-/* автосохранение: input с debounce, change сразу */
 (function attachAutoSave() {
   let timer = null;
   const schedule = () => {
+    if (storageDisabled) return;
     if (timer) clearTimeout(timer);
     timer = setTimeout(saveFormState, 300);
   };
 
   document.addEventListener("input", (e) => {
+    if (storageDisabled) return;
     if (e.target && e.target.matches && e.target.matches("textarea, input, select")) schedule();
   });
   document.addEventListener("change", (e) => {
+    if (storageDisabled) return;
     if (e.target && e.target.matches && e.target.matches("textarea, input, select")) saveFormState();
   });
   document.querySelectorAll(".toggle-btn").forEach(b => {
-    b.addEventListener("click", saveFormState);
+    b.addEventListener("click", () => { if (!storageDisabled) saveFormState(); });
   });
 
   window.addEventListener("beforeunload", () => {
+    if (storageDisabled) return;
     if (timer) clearTimeout(timer);
     saveFormState();
   });
   window.addEventListener("pagehide", () => {
+    if (storageDisabled) return;
     if (timer) clearTimeout(timer);
     saveFormState();
   });
 })();
 
-/* ========================================================= */
-/* ============ КНОПКА "ОЧИСТИТЬ ДАННЫЕ" =================== */
-/* ========================================================= */
-
 (function initClearButton() {
   const clearBtn = document.getElementById("clearData");
-  if (!clearBtn) {
-    alert("Кнопка #clearData не найдена в HTML. Проверь index.html.");
-    return;
-  }
+  if (!clearBtn) return;
   clearBtn.addEventListener("click", (ev) => {
     ev.preventDefault();
     const ok = window.confirm("Очистить все введённые данные и сбросить форму?");
     if (!ok) return;
+    storageDisabled = true;
     clearFormState();
     location.reload();
   });
 })();
 
-/* ========================================================= */
-/* ============ МОДАЛЬНОЕ ОКНО И ПАРСЕР ТЕКСТА ============= */
-/* ========================================================= */
-
-const modal      = document.getElementById("modal");
-const modalText  = document.getElementById("modalText");
+const modal = document.getElementById("modal");
+const modalText = document.getElementById("modalText");
 const modalError = document.getElementById("modalError");
-const loadBtn    = document.getElementById("loadText");
+const loadBtn = document.getElementById("loadText");
 
 const LABEL_TO_TARGET = [
-  { label: "1. фамилия",                  id: "f_surname" },
-  { label: "2. фамилия при рождении",     id: "f_surname_birth" },
-  { label: "3. имя/имена",                id: "f_given_names" },
-  { label: "3. имя",                      id: "f_given_names" },
-  { label: "4. дата рождения",            id: "f_dob" },
-  { label: "5. место рождения",           id: "f_pob" },
-  { label: "6. страна рождения",          id: "f_cob" },
+  { label: "1. фамилия", id: "f_surname" },
+  { label: "2. фамилия при рождении", id: "f_surname_birth" },
+  { label: "3. имя/имена", id: "f_given_names" },
+  { label: "3. имя", id: "f_given_names" },
+  { label: "4. дата рождения", id: "f_dob" },
+  { label: "5. место рождения", id: "f_pob" },
+  { label: "6. страна рождения", id: "f_cob" },
   { label: "7. гражданство в настоящее время", id: "f_citizenship_now" },
-  { label: "гражданство при рождении",    id: "f_citizenship_birth" },
-  { label: "иное гражданство",            id: "f_citizenship_other" },
-  { label: "10. для несовершеннолетних",  id: "f_minor" },
+  { label: "гражданство при рождении", id: "f_citizenship_birth" },
+  { label: "иное гражданство", id: "f_citizenship_other" },
+  { label: "10. для несовершеннолетних", id: "f_minor" },
   { label: "11. идентификационный номер", id: "f_id" },
   { label: "12. иной тип документа (указать)", id: "f_doctype_other" },
-  { label: "13. номер",                   id: "f_passport" },
+  { label: "13. номер", id: "f_passport" },
   { label: "13. номер проездного документа", id: "f_passport" },
-  { label: "14. дата выдачи",             id: "f_passport_issue" },
-  { label: "15. действителен до",         id: "f_passport_valid" },
-  { label: "16. кем выдан (страна)",      id: "f_passport_issuer" },
-  { label: "17. фамилия",                 id: "f_eu_surname" },
-  { label: "17. имя/имена",               id: "f_eu_given" },
-  { label: "17. имя",                     id: "f_eu_given" },
-  { label: "17. дата рождения",           id: "f_eu_dob" },
-  { label: "17. гражданство",             id: "f_eu_cit" },
-  { label: "17. номер документа",         id: "f_eu_doc" },
-  { label: "18. иное (указать)",          id: "f_relation_other" },
+  { label: "14. дата выдачи", id: "f_passport_issue" },
+  { label: "15. действителен до", id: "f_passport_valid" },
+  { label: "16. кем выдан (страна)", id: "f_passport_issuer" },
+  { label: "17. фамилия", id: "f_eu_surname" },
+  { label: "17. имя/имена", id: "f_eu_given" },
+  { label: "17. имя", id: "f_eu_given" },
+  { label: "17. дата рождения", id: "f_eu_dob" },
+  { label: "17. гражданство", id: "f_eu_cit" },
+  { label: "17. номер документа", id: "f_eu_doc" },
+  { label: "18. иное (указать)", id: "f_relation_other" },
   { label: "19. домашний адрес и email заявителя", id: "f_address" },
   { label: "19. домашний адрес и адрес электронной почты заявителя", id: "f_address" },
-  { label: "19. номер телефона",          id: "f_phone" },
-  { label: "20. № вида на жительство",    id: "f_residence_no" },
-  { label: "20. действителен до",         id: "f_residence_until" },
+  { label: "19. номер телефона", id: "f_phone" },
+  { label: "20. № вида на жительство", id: "f_residence_no" },
+  { label: "20. действителен до", id: "f_residence_until" },
   { label: "21. профессиональная деятельность", id: "f_profession" },
-  { label: "22. работодатель",            id: "f_employer" },
-  { label: "23. иная цель (указать)",     id: "f_purpose_other" },
+  { label: "22. работодатель", id: "f_employer" },
+  { label: "23. иная цель (указать)", id: "f_purpose_other" },
   { label: "24. дополнительные сведения о цели поездки", id: "f_purpose_extra" },
   { label: "25. страна основного пребывания", id: "f_main_country" },
-  { label: "26. страна первого въезда",   id: "f_first_entry" },
-  { label: "28. дата въезда",             id: "f_date_in" },
-  { label: "28. дата выезда",             id: "f_date_out" },
-  { label: "29. дата сдачи отпечатков",   id: "f_fp_date" },
-  { label: "29. номер визовой наклейки",  id: "f_fp_sticker" },
-  { label: "30. действительно с",         id: "f_final_from" },
-  { label: "30. действительно до",        id: "f_final_to" },
+  { label: "26. страна первого въезда", id: "f_first_entry" },
+  { label: "28. дата въезда", id: "f_date_in" },
+  { label: "28. дата выезда", id: "f_date_out" },
+  { label: "29. дата сдачи отпечатков", id: "f_fp_date" },
+  { label: "29. номер визовой наклейки", id: "f_fp_sticker" },
+  { label: "30. действительно с", id: "f_final_from" },
+  { label: "30. действительно до", id: "f_final_to" },
   { label: "31. фамилия и имя приглашающего лица/лиц", id: "f_host_name" },
   { label: "31. фамилия и имя приглашающего лица/лиц (название гостиницы)", id: "f_host_name" },
   { label: "31. телефон приглашающего лица", id: "f_host_phone" },
   { label: "31. адрес и email приглашающего лица / гостиницы", id: "f_host" },
   { label: "32. название и адрес приглашающей компании", id: "f_company" },
   { label: "32. контактное лицо компании", id: "f_company_contact" },
-  { label: "32. телефон компании",        id: "f_company_phone" },
-  { label: "спонсор (указать)",           id: "f_sponsor_name" },
+  { label: "32. телефон компании", id: "f_company_phone" },
+  { label: "спонсор (указать)", id: "f_sponsor_name" },
   { label: "34. фамилия и имя заполняющего", id: "f_filler_name" },
-  { label: "34. телефон заполняющего",    id: "f_filler_phone" },
+  { label: "34. телефон заполняющего", id: "f_filler_phone" },
   { label: "34. адрес и email заполняющего", id: "f_filler_addr" },
-  { label: "место и дата подписи",        id: "f_sign_place_date" },
+  { label: "место и дата подписи", id: "f_sign_place_date" },
 ];
 
 const ID_TO_BLOCK = {
-  f_minor:  "block_minor",
-  f_id:     "block_id",
+  f_minor: "block_minor",
+  f_id: "block_id",
   f_eu_surname: "block_eu",
-  f_eu_given:   "block_eu",
-  f_eu_dob:     "block_eu",
-  f_eu_cit:     "block_eu",
-  f_eu_doc:     "block_eu",
-  f_relation:   "block_eu",
+  f_eu_given: "block_eu",
+  f_eu_dob: "block_eu",
+  f_eu_cit: "block_eu",
+  f_eu_doc: "block_eu",
+  f_relation: "block_eu",
   f_relation_other: "block_eu",
-  f_residence:     "block_residence",
-  f_residence_no:  "block_residence",
+  f_residence: "block_residence",
+  f_residence_no: "block_residence",
   f_residence_until: "block_residence",
   f_purpose_extra: "block_purpose_extra",
-  f_final_from:    "block_final",
-  f_final_to:      "block_final",
-  f_company:       "block_company",
+  f_final_from: "block_final",
+  f_final_to: "block_final",
+  f_company: "block_company",
   f_company_contact: "block_company",
-  f_company_phone:   "block_company",
-  f_filler_name:   "block_filler",
-  f_filler_phone:  "block_filler",
-  f_filler_addr:   "block_filler",
+  f_company_phone: "block_company",
+  f_filler_name: "block_filler",
+  f_filler_phone: "block_filler",
+  f_filler_addr: "block_filler",
 };
 
 const LABEL_TO_SELECT = [
-  { label: "8. пол", id: "f_sex", map: {
-      "мужской": "m", "женский": "f", "иной": "x",
-  }},
+  { label: "8. пол", id: "f_sex", map: { "мужской": "m", "женский": "f", "иной": "x" } },
   { label: "9. семейное положение", id: "f_marital", map: {
-      "холост": "single", "не замужем": "single", "холост / не замужем": "single",
-      "женат": "married", "замужем": "married", "женат/замужем": "married",
-      "в зарегистрированном партнёрстве": "partner", "в зарегистрированном партнерстве": "partner",
-      "не проживает с супругой": "separated", "не проживает с супругом": "separated",
-      "разведён": "divorced", "разведен": "divorced", "разведена": "divorced",
-      "вдовец": "widowed", "вдова": "widowed",
-      "иное": "other",
+    "холост": "single", "не замужем": "single", "холост / не замужем": "single",
+    "женат": "married", "замужем": "married", "женат/замужем": "married",
+    "в зарегистрированном партнёрстве": "partner", "в зарегистрированном партнерстве": "partner",
+    "не проживает с супругой": "separated", "не проживает с супругом": "separated",
+    "разведён": "divorced", "разведен": "divorced", "разведена": "divorced",
+    "вдовец": "widowed", "вдова": "widowed", "иное": "other",
   }},
   { label: "12. тип проездного документа", id: "f_doctype", map: {
-      "обычный": "ordinary", "обычный паспорт": "ordinary",
-      "дипломатический": "diplomatic", "дипломатический паспорт": "diplomatic",
-      "служебный": "service", "служебный паспорт": "service",
-      "официальный": "official", "официальный паспорт": "official",
-      "особый": "special", "особый паспорт": "special",
-      "иной": "other",
+    "обычный": "ordinary", "обычный паспорт": "ordinary",
+    "дипломатический": "diplomatic", "дипломатический паспорт": "diplomatic",
+    "служебный": "service", "служебный паспорт": "service",
+    "официальный": "official", "официальный паспорт": "official",
+    "особый": "special", "особый паспорт": "special", "иной": "other",
   }},
   { label: "18. родственная связь", id: "f_relation", map: {
-      "супруг": "spouse", "супруга": "spouse", "супруг(-а)": "spouse",
-      "ребенок": "child", "ребёнок": "child",
-      "внук": "grandchild", "внучка": "grandchild", "внук(-чка)": "grandchild",
-      "экономически зависимый родственник по восходящей линии": "dependent",
-      "зарегистрированный партнер": "partner", "зарегистрированный партнёр": "partner",
-      "иное": "other",
+    "супруг": "spouse", "супруга": "spouse", "супруг(-а)": "spouse",
+    "ребенок": "child", "ребёнок": "child",
+    "внук": "grandchild", "внучка": "grandchild", "внук(-чка)": "grandchild",
+    "экономически зависимый родственник по восходящей линии": "dependent",
+    "зарегистрированный партнер": "partner", "зарегистрированный партнёр": "partner",
+    "иное": "other",
   }},
   { label: "23. цель поездки", id: "f_purpose", map: {
-      "туризм": "tourism",
-      "деловая": "business",
-      "посещение родственников": "visit", "посещение родственников или друзей": "visit",
-      "культура": "culture",
-      "спорт": "sport",
-      "официальная": "official",
-      "лечение": "medical",
-      "учеба": "study", "учёба": "study",
-      "транзитный перелет": "transit", "транзитный перелёт": "transit",
-      "иная": "other", "иное": "other",
+    "туризм": "tourism", "деловая": "business",
+    "посещение родственников": "visit", "посещение родственников или друзей": "visit",
+    "культура": "culture", "спорт": "sport", "официальная": "official",
+    "лечение": "medical", "учеба": "study", "учёба": "study",
+    "транзитный перелет": "transit", "транзитный перелёт": "transit",
+    "иная": "other", "иное": "other",
   }},
-  { label: "20. страна проживания", id: "f_residence", map: {
-      "нет": "no", "да": "yes",
-  }},
-  { label: "29. отпечатки пальцев сданы ранее", id: "f_fp", map: {
-      "нет": "no", "да": "yes",
-  }},
+  { label: "20. страна проживания", id: "f_residence", map: { "нет": "no", "да": "yes" } },
+  { label: "29. отпечатки пальцев сданы ранее", id: "f_fp", map: { "нет": "no", "да": "yes" } },
   { label: "27. виза запрашивается для", id: "f_entries", map: {
-      "однократного въезда": "1", "однократный": "1",
-      "двукратного въезда": "2", "двукратный": "2",
-      "многократного въезда": "M", "многократный": "M",
+    "однократного въезда": "1", "однократный": "1",
+    "двукратного въезда": "2", "двукратный": "2",
+    "многократного въезда": "M", "многократный": "M",
   }},
   { label: "33. средства: кто оплачивает", id: "f_money_who", map: {
-      "сам заявитель": "self",
-      "спонсор": "sponsor",
-      "спонсор (приглашающее лицо, компания, организация)": "sponsor",
+    "сам заявитель": "self", "спонсор": "sponsor",
+    "спонсор (приглашающее лицо, компания, организация)": "sponsor",
   }},
 ];
 
 const LABEL_TO_CHECKBOXES = [
   { label: "средства (сам заявитель)", checks: [
-      { id: "c_cash",        keys: ["наличные", "наличные деньги"] },
-      { id: "c_checks",      keys: ["дорожные чеки", "чеки"] },
-      { id: "c_card",        keys: ["кредитная карта", "карта"] },
-      { id: "c_lodging",     keys: ["проживание предоплачено", "место проживания предоплачено"] },
-      { id: "c_transport",   keys: ["транспорт предоплачен"] },
-      { id: "c_other_money", keys: ["иные", "иное"] },
+    { id: "c_cash", keys: ["наличные", "наличные деньги"] },
+    { id: "c_checks", keys: ["дорожные чеки", "чеки"] },
+    { id: "c_card", keys: ["кредитная карта", "карта"] },
+    { id: "c_lodging", keys: ["проживание предоплачено", "место проживания предоплачено"] },
+    { id: "c_transport", keys: ["транспорт предоплачен"] },
+    { id: "c_other_money", keys: ["иные", "иное"] },
   ]},
   { label: "средства (спонсор)", checks: [
-      { id: "s_mentioned",  keys: ["упомянутые в п. 30 и 31"] },
-      { id: "s_other",      keys: ["иные"] },
-      { id: "s_cash",       keys: ["наличные", "наличные деньги"] },
-      { id: "s_lodging",    keys: ["обеспечивается проживание", "обеспечивается место проживания"] },
-      { id: "s_expenses",   keys: ["оплачиваются все расходы", "оплачиваются все расходы во время пребывания"] },
-      { id: "s_transport",  keys: ["транспорт предоплачен"] },
-      { id: "s_other2",     keys: ["иные (указать)"] },
+    { id: "s_mentioned", keys: ["упомянутые в п. 30 и 31"] },
+    { id: "s_other", keys: ["иные"] },
+    { id: "s_cash", keys: ["наличные", "наличные деньги"] },
+    { id: "s_lodging", keys: ["обеспечивается проживание", "обеспечивается место проживания"] },
+    { id: "s_expenses", keys: ["оплачиваются все расходы", "оплачиваются все расходы во время пребывания"] },
+    { id: "s_transport", keys: ["транспорт предоплачен"] },
+    { id: "s_other2", keys: ["иные (указать)"] },
   ]},
 ];
 
 function normalizeLabel(s) {
-  return s
-    .trim()
-    .toLowerCase()
-    .replace(/[«»"]/g, "")
-    .replace(/\s+/g, " ")
-    .replace(/\s*:\s*$/, "");
+  return s.trim().toLowerCase().replace(/[«»"]/g, "").replace(/\s+/g, " ").replace(/\s*:\s*$/, "");
 }
 
 function stripNumber(s) {
@@ -519,8 +487,7 @@ function applyLine(rawLine) {
   if (colon < 0) return { ok: false, reason: "нет двоеточия" };
 
   const rawLabel = rawLine.slice(0, colon).trim();
-  const value    = rawLine.slice(colon + 1).replace(/^\s+|\s+$/g, "");
-
+  const value = rawLine.slice(colon + 1).replace(/^\s+|\s+$/g, "");
   if (!rawLabel) return { ok: false, reason: "пустая подпись" };
 
   const label = normalizeLabel(rawLabel);
@@ -541,7 +508,6 @@ function applyLine(rawLine) {
   if (selCfg) {
     const el = document.getElementById(selCfg.id);
     if (!el) return { ok: false, reason: "селект не найден: " + label };
-
     let val = null;
     for (const [k, v] of Object.entries(selCfg.map)) {
       if (k === valueLower) { val = v; break; }
@@ -615,13 +581,8 @@ document.getElementById("modalApply").addEventListener("click", () => {
   saveFormState();
 });
 
-/* ========================================================= */
-/* ============ КНОПКА "ЗАПОЛНИТЬ И СКАЧАТЬ" =============== */
-/* ========================================================= */
-
 const runBtn = document.getElementById("run");
 const statusEl = document.getElementById("status");
-
 let lastBlobUrl = null;
 
 runBtn.onclick = async () => {
@@ -706,7 +667,7 @@ runBtn.onclick = async () => {
     lastBlobUrl = urlOut;
 
     const surname = (document.getElementById("f_surname").value || "").trim();
-    const given   = (document.getElementById("f_given_names").value || "").trim();
+    const given = (document.getElementById("f_given_names").value || "").trim();
     const d = new Date();
     const dd = String(d.getDate()).padStart(2, "0");
     const mm = String(d.getMonth() + 1).padStart(2, "0");
@@ -720,7 +681,6 @@ runBtn.onclick = async () => {
     a.rel = "noopener";
     a.style.display = "none";
     document.body.appendChild(a);
-
     a.click();
     document.body.removeChild(a);
 
