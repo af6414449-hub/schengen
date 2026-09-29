@@ -290,6 +290,18 @@ document.getElementById("block_money_sponsor").classList.toggle("hidden", docume
 })();
 
 /* ========================================================= */
+/* ============ КНОПКА "ОЧИСТИТЬ ДАННЫЕ" =================== */
+/* ========================================================= */
+
+const clearBtn = document.getElementById("clearData");
+clearBtn.addEventListener("click", () => {
+  if (confirm("Очистить все введённые данные и сбросить форму?")) {
+    clearFormState();
+    location.reload();
+  }
+});
+
+/* ========================================================= */
 /* ============ МОДАЛЬНОЕ ОКНО И ПАРСЕР ТЕКСТА ============= */
 /* ========================================================= */
 
@@ -710,7 +722,6 @@ runBtn.onclick = async () => {
     clearFormState();
 
   } catch (e) {
-    console.error(e);
     statusEl.textContent = "Ошибка: " + e.message;
   }
 };
