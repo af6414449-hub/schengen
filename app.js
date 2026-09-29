@@ -123,6 +123,8 @@ function allToggleNames() {
   return [...names];
 }
 
+/* ---------- вспомогательные функции UI ---------- */
+
 function setToggleState(btn, open) {
   const block = document.getElementById(btn.dataset.target);
   if (!block) return;
@@ -148,26 +150,10 @@ function openBlockById(blockId) {
   }
 }
 
-document.querySelectorAll(".toggle-btn").forEach(btn => {
-  btn.addEventListener("click", () => {
-    const block = document.getElementById(btn.dataset.target);
-    if (!block) return;
-    setToggleState(btn, block.classList.contains("hidden"));
-  });
-});
-
 function autoGrow(el) {
   el.style.height = "auto";
   el.style.height = el.scrollHeight + "px";
 }
-document.querySelectorAll("textarea").forEach(el => {
-  el.addEventListener("input", () => autoGrow(el));
-  autoGrow(el);
-});
-
-document.querySelectorAll("label").forEach(el => {
-  el.title = el.textContent.trim();
-});
 
 function formatDateString(raw) {
   const digits = raw.replace(/\D/g, "").slice(0, 8);
@@ -177,6 +163,7 @@ function formatDateString(raw) {
   if (digits.length > 4) out += "-" + digits.slice(4, 8);
   return out;
 }
+
 function attachDateMask(el) {
   el.addEventListener("input", () => {
     const out = formatDateString(el.value);
@@ -189,28 +176,118 @@ function attachDateMask(el) {
     }
   });
 }
+
+/* ---------- обработчики UI ---------- */
+
+document.querySelectorAll(".toggle-btn").forEach(btn => {
+  btn.addEventListener("click", () => {
+    const block = document.getElementById(btn.dataset.target);
+    if (!block) return;
+    setToggleState(btn, block.classList.contains("hidden"));
+  });
+});
+
+document.querySelectorAll("textarea").forEach(el => {
+  el.addEventListener("input", () => autoGrow(el));
+  autoGrow(el);
+});
+
+document.querySelectorAll("label").forEach(el => {
+  el.title = el.textContent.trim();
+});
+
 document.querySelectorAll("textarea[placeholder='ДД-ММ-ГГГГ']").forEach(attachDateMask);
 
-function updateDoctypeOther() {
-  const v = document.getElementById("f_doctype").value;
-  document.getElementById("block_doctype_other").classList.toggle("hidden", v !== "other");
+/* ========================================================= */
+/* ==================== STORAGE ============================ */
+/* localStorage: сохраняется между сессиями, переживает F5.  */
+/* Очищается после скачивания PDF.                            */
+/* ========================================================= */
+
+const STORAGE_KEY = "visaFiller:v1";
+
+function collectFormState() {
+  const s = { texts: {}, selects: {}, checks: {}, toggles: {} };
+  document.querySelectorAll("textarea").forEach(el => { if (el.id) s.texts[el.id] = el.value; });
+  document.querySelectorAll("select").forEach(el => { if (el.id) s.selects[el.id] = el.value; });
+  document.querySelectorAll("input[type=checkbox]").forEach(el => { if (el.id) s.checks[el.id] = el.checked; });
+  document.querySelectorAll(".toggle-btn").forEach(b => { s.toggles[b.dataset.target] = b.classList.contains("open"); });
+  return s;
 }
 
-function updateMoney() {
-  const who = document.getElementById("f_money_who").value;
-  document.getElementById("block_money_self").classList.toggle("hidden", who !== "self");
-  document.getElementById("block_money_sponsor").classList.toggle("hidden", who !== "sponsor");
+function applyFormState(s) {
+  if (!s) return;
+  Object.entries(s.texts || {}).forEach(([id, v]) => {
+    const el = document.getElementById(id);
+    if (el) { el.value = v ?? ""; autoGrow(el); }
+  });
+  Object.entries(s.selects || {}).forEach(([id, v]) => {
+    const el = document.getElementById(id);
+    if (el && el.tagName === "SELECT") el.value = v;
+  });
+  Object.entries(s.checks || {}).forEach(([id, v]) => {
+    const el = document.getElementById(id);
+    if (el && el.type === "checkbox") el.checked = !!v;
+  });
+  Object.entries(s.toggles || {}).forEach(([t, open]) => {
+    const btn = document.querySelector(`.toggle-btn[data-target="${t}"]`);
+    if (btn) setToggleState(btn, !!open);
+  });
 }
 
-document.getElementById("f_doctype").addEventListener("change", updateDoctypeOther);
-document.getElementById("f_money_who").addEventListener("change", updateMoney);
+function saveFormState() {
+  try { localStorage.setItem(STORAGE_KEY, JSON.stringify(collectFormState())); } catch (e) {}
+}
+function loadFormState() {
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if (raw) applyFormState(JSON.parse(raw));
+  } catch (e) {}
+}
+function clearFormState() {
+  try { localStorage.removeItem(STORAGE_KEY); } catch (e) {}
+}
 
+/* --- init --- */
 document.getElementById("f_marital").value = "single";
 document.getElementById("f_doctype").value = "ordinary";
 document.getElementById("f_purpose").value = "tourism";
 document.getElementById("f_entries").value = "1";
 document.getElementById("f_money_who").value = "self";
-updateMoney();
+
+loadFormState();
+
+document.getElementById("block_doctype_other").classList.toggle("hidden", document.getElementById("f_doctype").value !== "other");
+document.getElementById("block_money_self").classList.toggle("hidden", document.getElementById("f_money_who").value !== "self");
+document.getElementById("block_money_sponsor").classList.toggle("hidden", document.getElementById("f_money_who").value !== "sponsor");
+
+/* автосохранение: input с debounce, change сразу */
+(function attachAutoSave() {
+  let timer = null;
+  const schedule = () => {
+    if (timer) clearTimeout(timer);
+    timer = setTimeout(saveFormState, 300);
+  };
+
+  document.addEventListener("input", (e) => {
+    if (e.target && e.target.matches && e.target.matches("textarea, input, select")) schedule();
+  });
+  document.addEventListener("change", (e) => {
+    if (e.target && e.target.matches && e.target.matches("textarea, input, select")) saveFormState();
+  });
+  document.querySelectorAll(".toggle-btn").forEach(b => {
+    b.addEventListener("click", saveFormState);
+  });
+
+  window.addEventListener("beforeunload", () => {
+    if (timer) clearTimeout(timer);
+    saveFormState();
+  });
+  window.addEventListener("pagehide", () => {
+    if (timer) clearTimeout(timer);
+    saveFormState();
+  });
+})();
 
 /* ========================================================= */
 /* ============ МОДАЛЬНОЕ ОКНО И ПАРСЕР ТЕКСТА ============= */
@@ -516,6 +593,7 @@ document.getElementById("modalApply").addEventListener("click", () => {
   }
 
   modal.classList.add("hidden");
+  saveFormState();
 });
 
 /* ========================================================= */
@@ -525,23 +603,26 @@ document.getElementById("modalApply").addEventListener("click", () => {
 const runBtn = document.getElementById("run");
 const statusEl = document.getElementById("status");
 
+let lastBlobUrl = null;
+
 runBtn.onclick = async () => {
-  const log = (msg) => { statusEl.textContent = msg; };
-  log("1. старт");
+  statusEl.textContent = "Готовлю PDF…";
+
+  if (lastBlobUrl) {
+    try { URL.revokeObjectURL(lastBlobUrl); } catch (e) {}
+    lastBlobUrl = null;
+  }
+
   try {
-    log("2. качаю form.pdf");
     const url = "form.pdf";
-    const resp = await fetch(url);
-    log("3. ответ: " + resp.status);
-    const bytes = await resp.arrayBuffer();
-    log("4. получено байт: " + bytes.byteLength);
+    const bytes = await fetch(url).then(r => r.arrayBuffer());
 
     const { PDFDocument } = PDFLib;
     const doc = await PDFDocument.load(bytes);
-    log("5. PDF загружен");
     const form = doc.getForm();
 
     let filled = 0;
+
     for (const [id, fieldName] of Object.entries(TEXT_MAP)) {
       const el = document.getElementById(id);
       if (!el) continue;
@@ -549,6 +630,7 @@ runBtn.onclick = async () => {
       if (!value) continue;
       if (PHONE_FIELDS.has(id)) value = value.replace(/[()\s\-]/g, "");
       if (LEADING_NEWLINE.has(id)) value = "\n" + value;
+
       try {
         const f = form.getTextField(fieldName);
         f.setFontSize(9);
@@ -567,7 +649,6 @@ runBtn.onclick = async () => {
         } catch (e2) {}
       }
     }
-    log("6. текстовые поля: " + filled);
 
     for (const name of allToggleNames()) {
       try { form.getCheckBox(name).uncheck(); } catch (e) {}
@@ -599,16 +680,11 @@ runBtn.onclick = async () => {
         try { form.getCheckBox(fieldName).check(); } catch (e) {}
       }
     }
-    log("7. галочки проставлены");
 
-    log("8. сохраняю PDF");
     const out = await doc.save();
-    log("9. PDF готов, байт: " + out.byteLength);
-
     const blob = new Blob([out], { type: "application/pdf" });
     const urlOut = URL.createObjectURL(blob);
-    const a = document.createElement("a");
-    a.href = urlOut;
+    lastBlobUrl = urlOut;
 
     const surname = (document.getElementById("f_surname").value || "").trim();
     const given   = (document.getElementById("f_given_names").value || "").trim();
@@ -617,16 +693,24 @@ runBtn.onclick = async () => {
     const mm = String(d.getMonth() + 1).padStart(2, "0");
     const yyyy = d.getFullYear();
     const fullName = [given, surname].filter(Boolean).join(" ") || "без имени";
-    a.download = `Анкета (${fullName}) ${dd}-${mm}-${yyyy}.pdf`;
+    const fileName = `Анкета (${fullName}) ${dd}-${mm}-${yyyy}.pdf`;
 
-    log("10. вызываю click");
+    const a = document.createElement("a");
+    a.href = urlOut;
+    a.download = fileName;
+    a.rel = "noopener";
+    a.style.display = "none";
     document.body.appendChild(a);
+
     a.click();
     document.body.removeChild(a);
-    log("11. click выполнен, filled=" + filled);
 
-    setTimeout(() => URL.revokeObjectURL(urlOut), 60000);
+    statusEl.textContent = `Готово. Заполнено полей: ${filled}. Если файл не появился — нажми ещё раз.`;
+
+    clearFormState();
+
   } catch (e) {
-    statusEl.textContent = "ОШИБКА: " + (e && e.message ? e.message : e);
+    console.error(e);
+    statusEl.textContent = "Ошибка: " + e.message;
   }
 };
