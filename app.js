@@ -293,13 +293,20 @@ document.getElementById("block_money_sponsor").classList.toggle("hidden", docume
 /* ============ КНОПКА "ОЧИСТИТЬ ДАННЫЕ" =================== */
 /* ========================================================= */
 
-const clearBtn = document.getElementById("clearData");
-clearBtn.addEventListener("click", () => {
-  if (confirm("Очистить все введённые данные и сбросить форму?")) {
+(function initClearButton() {
+  const clearBtn = document.getElementById("clearData");
+  if (!clearBtn) {
+    alert("Кнопка #clearData не найдена в HTML. Проверь index.html.");
+    return;
+  }
+  clearBtn.addEventListener("click", (ev) => {
+    ev.preventDefault();
+    const ok = window.confirm("Очистить все введённые данные и сбросить форму?");
+    if (!ok) return;
     clearFormState();
     location.reload();
-  }
-});
+  });
+})();
 
 /* ========================================================= */
 /* ============ МОДАЛЬНОЕ ОКНО И ПАРСЕР ТЕКСТА ============= */
