@@ -51,20 +51,11 @@ const TEXT_MAP = {
 };
 
 const LEADING_NEWLINE = new Set([
-  "f_address",
-  "f_phone",
-  "f_employer",
-  "f_host_name",
-  "f_host",
-  "f_company",
-  "f_company_contact",
+  "f_address", "f_phone", "f_employer", "f_host_name", "f_host", "f_company", "f_company_contact",
 ]);
 
 const PHONE_FIELDS = new Set([
-  "f_phone",
-  "f_host_phone",
-  "f_company_phone",
-  "f_filler_phone",
+  "f_phone", "f_host_phone", "f_company_phone", "f_filler_phone",
 ]);
 
 const SELECT_TO_CHECK = [
@@ -292,8 +283,15 @@ document.getElementById("block_money_sponsor").classList.toggle("hidden", docume
     ev.preventDefault();
     const ok = window.confirm("Очистить все введённые данные и сбросить форму?");
     if (!ok) return;
+
     storageDisabled = true;
+
     clearFormState();
+
+    document.querySelectorAll("textarea").forEach(el => { el.value = ""; });
+    document.querySelectorAll("select").forEach(el => { el.selectedIndex = 0; });
+    document.querySelectorAll("input[type=checkbox]").forEach(el => { el.checked = false; });
+
     location.reload();
   });
 })();
