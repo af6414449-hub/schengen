@@ -15,7 +15,7 @@
     overflow: hidden;
   }
 
-  /* правая колонка с двумя кнопками */
+  /* правая колонка с тремя кнопками */
   .side-col {
     flex: 0 0 120px;
     display: flex;
@@ -24,7 +24,7 @@
   }
 
   .side-btn {
-    flex: 1 1 50%;
+    flex: 1 1 33.333%;
     border: none;
     cursor: pointer;
     padding: 0;
@@ -37,12 +37,16 @@
   .side-btn + .side-btn { border-top: 1px solid rgba(0,0,0,.15); }
 
   /* верхняя — загрузка из текста */
-  #loadText { background: #5b9bd5; }
-  #loadText:hover { background: #4a89c4; }
+  #loadText { background: #3d6ea8; }
+  #loadText:hover { background: #315d90; }
+
+  /* средняя — очистка данных */
+  #clearData { background: #a83d4a; }
+  #clearData:hover { background: #8f3140; }
 
   /* нижняя — скачать PDF */
-  #run { background: #4caf72; }
-  #run:hover { background: #3f9a62; }
+  #run { background: #2f8f5b; }
+  #run:hover { background: #26794c; }
 
   .side-btn svg {
     width: 44px;
@@ -434,6 +438,15 @@
       <path d="M5 12l7-7 7 7"/>
     </svg>
   </button>
+
+  <button class="side-btn" id="clearData" title="Очистить все данные">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"
+         stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+      <path d="M6 6l12 12"/>
+      <path d="M18 6l-12 12"/>
+    </svg>
+  </button>
+
   <button class="side-btn" id="run" title="Заполнить и скачать">
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"
          stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
