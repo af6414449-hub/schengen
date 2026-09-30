@@ -53,7 +53,6 @@ const KEY_TO_TEXT = {
   "35":  "f_sign_place_date",
 };
 
-/* Карта: номер анкеты → селект + значения */
 const KEY_TO_SELECT = {
   "8":  { id: "f_sex", map: {
     "мужской": "m", "m": "m", "male": "m",
@@ -117,7 +116,6 @@ const KEY_TO_SELECT = {
   }},
 };
 
-/* Чекбоксы: ключ → список чекбоксов с синонимами */
 const KEY_TO_CHECKS = {
   "33.2": [
     { id: "c_cash",        keys: ["наличные", "наличные деньги", "cash"] },
@@ -138,9 +136,6 @@ const KEY_TO_CHECKS = {
   ],
 };
 
-/* =========================================================
-   PDF-маппинг (не менялся)
-   ========================================================= */
 const TEXT_MAP = {
   f_surname: "fill_6",
   f_surname_birth: "fill_7",
@@ -256,9 +251,6 @@ function allToggleNames() {
   return [...names];
 }
 
-/* =========================================================
-   Утилиты UI
-   ========================================================= */
 function setToggleState(btn, open) {
   const block = document.getElementById(btn.dataset.target);
   if (!block) return;
@@ -311,7 +303,6 @@ function attachDateMask(el) {
   });
 }
 
-/* Блоки, которые надо автоматически раскрывать */
 const ID_TO_BLOCK = {
   f_minor: "block_minor",
   f_id: "block_id",
@@ -336,9 +327,6 @@ const ID_TO_BLOCK = {
   f_filler_addr: "block_filler",
 };
 
-/* =========================================================
-   Обработчики UI
-   ========================================================= */
 document.querySelectorAll(".toggle-btn").forEach(btn => {
   btn.addEventListener("click", () => {
     const block = document.getElementById(btn.dataset.target);
@@ -358,9 +346,6 @@ document.querySelectorAll("label").forEach(el => {
 
 document.querySelectorAll("textarea[placeholder='ДД-ММ-ГГГГ']").forEach(attachDateMask);
 
-/* =========================================================
-   Storage
-   ========================================================= */
 const STORAGE_KEY = "visaFiller:v2";
 let storageDisabled = false;
 
@@ -407,7 +392,6 @@ function clearFormState() {
   try { localStorage.removeItem(STORAGE_KEY); } catch (e) {}
 }
 
-/* Дефолты и восстановление */
 document.getElementById("f_marital").value = "single";
 document.getElementById("f_doctype").value = "ordinary";
 document.getElementById("f_purpose").value = "tourism";
@@ -420,7 +404,6 @@ document.getElementById("block_doctype_other").classList.toggle("hidden", docume
 document.getElementById("block_money_self").classList.toggle("hidden", document.getElementById("f_money_who").value !== "self");
 document.getElementById("block_money_sponsor").classList.toggle("hidden", document.getElementById("f_money_who").value !== "sponsor");
 
-/* Автосохранение */
 (function attachAutoSave() {
   let timer = null;
   const schedule = () => {
@@ -453,7 +436,6 @@ document.getElementById("block_money_sponsor").classList.toggle("hidden", docume
   });
 })();
 
-/* Кнопка очистки */
 (function initClearButton() {
   const clearBtn = document.getElementById("clearData");
   if (!clearBtn) return;
@@ -473,35 +455,25 @@ document.getElementById("block_money_sponsor").classList.toggle("hidden", docume
   });
 })();
 
-/* =========================================================
-   Парсер ввода
-   ========================================================= */
-
-/* Обрезаем пробелы и завершающие . , ; */
 function cleanValue(raw) {
   let v = raw.replace(/^\s+|\s+$/g, "");
   v = v.replace(/[.,;]+\s*$/, "");
   return v;
 }
 
-/* Разбор строки на (key, rawValue).
-   Возвращает null, если строка не начинается с номера. */
 function splitNumberedLine(line) {
-  // ^\s* (\d+) (?:\.(\d+))? \.? \s* (rest)$
   const m = line.match(/^\s*(\d+)(?:\.(\d+))?\.?\s*(.*)$/);
   if (!m) return null;
   const key = m[2] ? `${m[1]}.${m[2]}` : m[1];
   return { key, rest: m[3] };
 }
 
-/* Извлекаем значение: если в rest есть ":", берём всё после последнего ":" */
 function extractValue(rest) {
   const idx = rest.lastIndexOf(":");
   if (idx < 0) return cleanValue(rest);
   return cleanValue(rest.slice(idx + 1));
 }
 
-/* Применяем одну строку. Возвращает {ok, reason} */
 function applyLine(rawLine) {
   const line = rawLine.replace(/\r$/, "");
   if (!line.trim()) return { ok: true, skip: true };
@@ -513,17 +485,14 @@ function applyLine(rawLine) {
   const { key, rest } = parsed;
   const value = extractValue(rest);
 
-  // Пустое значение — молча игнорируем (по договорённости)
   if (!value) return { ok: true, skip: true };
 
-  // 1) текстовое поле
   if (Object.prototype.hasOwnProperty.call(KEY_TO_TEXT, key)) {
     const id = KEY_TO_TEXT[key];
     const el = document.getElementById(id);
     if (!el) return { ok: false, reason: `поле ${key} не найдено в HTML` };
 
     let finalValue = value;
-    // даты маскируем
     if (el.placeholder === "ДД-ММ-ГГГГ") {
       finalValue = formatDateString(value);
     }
@@ -535,7 +504,6 @@ function applyLine(rawLine) {
     return { ok: true };
   }
 
-  // 2) селект
   if (Object.prototype.hasOwnProperty.call(KEY_TO_SELECT, key)) {
     const cfg = KEY_TO_SELECT[key];
     const el = document.getElementById(cfg.id);
@@ -558,25 +526,31 @@ function applyLine(rawLine) {
     el.value = val;
     el.dispatchEvent(new Event("change", { bubbles: true }));
     if (ID_TO_BLOCK[cfg.id]) openBlockById(ID_TO_BLOCK[cfg.id]);
+
+    if (cfg.id === "f_money_who") {
+      document.getElementById("block_money_self").classList.toggle("hidden", val !== "self");
+      document.getElementById("block_money_sponsor").classList.toggle("hidden", val !== "sponsor");
+    }
+    if (cfg.id === "f_doctype") {
+      document.getElementById("block_doctype_other").classList.toggle("hidden", val !== "other");
+    }
+
     return { ok: true };
   }
 
-  // 3) чекбоксы
   if (Object.prototype.hasOwnProperty.call(KEY_TO_CHECKS, key)) {
     const list = KEY_TO_CHECKS[key];
     const parts = value.split(",").map(s => s.trim().toLowerCase()).filter(Boolean);
     for (const part of parts) {
-      let matched = false;
       for (const c of list) {
         if (c.keys.some(k => {
           const kL = k.toLowerCase();
           return kL === part || part.startsWith(kL) || kL.startsWith(part);
         })) {
           const el = document.getElementById(c.id);
-          if (el) { el.checked = true; matched = true; }
+          if (el) el.checked = true;
         }
       }
-      // нераспознанное значение — игнорируем молча
     }
     return { ok: true };
   }
@@ -584,9 +558,6 @@ function applyLine(rawLine) {
   return { ok: false, reason: `неизвестный номер: ${key}` };
 }
 
-/* =========================================================
-   Модальное окно
-   ========================================================= */
 const modal      = document.getElementById("modal");
 const modalText  = document.getElementById("modalText");
 const modalError = document.getElementById("modalError");
@@ -632,9 +603,6 @@ document.getElementById("modalApply").addEventListener("click", () => {
   saveFormState();
 });
 
-/* =========================================================
-   Заполнить и скачать PDF
-   ========================================================= */
 const runBtn = document.getElementById("run");
 const statusEl = document.getElementById("status");
 let lastBlobUrl = null;
