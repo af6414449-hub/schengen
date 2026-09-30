@@ -392,6 +392,22 @@ function clearFormState() {
   try { localStorage.removeItem(STORAGE_KEY); } catch (e) {}
 }
 
+/* =========================================================
+   Синхронизация видимости условных блоков
+   ========================================================= */
+function syncMoneyBlocks() {
+  const who = document.getElementById("f_money_who").value;
+  document.getElementById("block_money_self").classList.toggle("hidden", who !== "self");
+  document.getElementById("block_money_sponsor").classList.toggle("hidden", who !== "sponsor");
+}
+function syncDoctypeBlock() {
+  const v = document.getElementById("f_doctype").value;
+  document.getElementById("block_doctype_other").classList.toggle("hidden", v !== "other");
+}
+
+document.getElementById("f_money_who").addEventListener("change", syncMoneyBlocks);
+document.getElementById("f_doctype").addEventListener("change", syncDoctypeBlock);
+
 document.getElementById("f_marital").value = "single";
 document.getElementById("f_doctype").value = "ordinary";
 document.getElementById("f_purpose").value = "tourism";
@@ -400,9 +416,8 @@ document.getElementById("f_money_who").value = "self";
 
 loadFormState();
 
-document.getElementById("block_doctype_other").classList.toggle("hidden", document.getElementById("f_doctype").value !== "other");
-document.getElementById("block_money_self").classList.toggle("hidden", document.getElementById("f_money_who").value !== "self");
-document.getElementById("block_money_sponsor").classList.toggle("hidden", document.getElementById("f_money_who").value !== "sponsor");
+syncDoctypeBlock();
+syncMoneyBlocks();
 
 (function attachAutoSave() {
   let timer = null;
@@ -527,13 +542,8 @@ function applyLine(rawLine) {
     el.dispatchEvent(new Event("change", { bubbles: true }));
     if (ID_TO_BLOCK[cfg.id]) openBlockById(ID_TO_BLOCK[cfg.id]);
 
-    if (cfg.id === "f_money_who") {
-      document.getElementById("block_money_self").classList.toggle("hidden", val !== "self");
-      document.getElementById("block_money_sponsor").classList.toggle("hidden", val !== "sponsor");
-    }
-    if (cfg.id === "f_doctype") {
-      document.getElementById("block_doctype_other").classList.toggle("hidden", val !== "other");
-    }
+    if (cfg.id === "f_money_who") syncMoneyBlocks();
+    if (cfg.id === "f_doctype") syncDoctypeBlock();
 
     return { ok: true };
   }
