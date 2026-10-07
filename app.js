@@ -304,8 +304,10 @@ function attachDateMask(el) {
 }
 
 const ID_TO_BLOCK = {
+  f_citizenship_other: "block_citizenship_other",
   f_minor: "block_minor",
   f_id: "block_id",
+  f_doctype_other: "block_doctype_other",
   f_eu_surname: "block_eu",
   f_eu_given: "block_eu",
   f_eu_dob: "block_eu",
@@ -316,6 +318,7 @@ const ID_TO_BLOCK = {
   f_residence: "block_residence",
   f_residence_no: "block_residence",
   f_residence_until: "block_residence",
+  f_purpose_other: "block_purpose_other",
   f_purpose_extra: "block_purpose_extra",
   f_final_from: "block_final",
   f_final_to: "block_final",
@@ -349,28 +352,8 @@ document.querySelectorAll("textarea[placeholder='ДД-ММ-ГГГГ']").forEach(
 const STORAGE_KEY = "visaFiller:v2";
 let storageDisabled = false;
 
-const FORM_FILES = {
-  msc: "form_msc.pdf",
-  reg: "form_reg.pdf",
-};
-
-const FORM_LABELS = {
-  msc: "MSC",
-  reg: "REG",
-};
-
-function getFormType() {
-  const el = document.querySelector('input[name="formType"]:checked');
-  return el && FORM_FILES[el.value] ? el.value : "reg";
-}
-
-function setFormType(type) {
-  const el = document.querySelector(`input[name="formType"][value="${type}"]`);
-  if (el) el.checked = true;
-}
-
 function collectFormState() {
-  const s = { texts: {}, selects: {}, checks: {}, toggles: {}, formType: getFormType() };
+  const s = { texts: {}, selects: {}, checks: {}, toggles: {} };
   document.querySelectorAll("textarea").forEach(el => { if (el.id) s.texts[el.id] = el.value; });
   document.querySelectorAll("select").forEach(el => { if (el.id) s.selects[el.id] = el.value; });
   document.querySelectorAll("input[type=checkbox]").forEach(el => { if (el.id) s.checks[el.id] = el.checked; });
@@ -380,7 +363,6 @@ function collectFormState() {
 
 function applyFormState(s) {
   if (!s) return;
-  if (s.formType) setFormType(s.formType);
   Object.entries(s.texts || {}).forEach(([id, v]) => {
     const el = document.getElementById(id);
     if (el) { el.value = v ?? ""; autoGrow(el); }
@@ -440,12 +422,6 @@ loadFormState();
 syncDoctypeBlock();
 syncMoneyBlocks();
 
-document.querySelectorAll('input[name="formType"]').forEach(el => {
-  el.addEventListener("change", () => {
-    if (!storageDisabled) saveFormState();
-  });
-});
-
 (function attachAutoSave() {
   let timer = null;
   const schedule = () => {
@@ -492,9 +468,6 @@ document.querySelectorAll('input[name="formType"]').forEach(el => {
     document.querySelectorAll("textarea").forEach(el => { el.value = ""; });
     document.querySelectorAll("select").forEach(el => { el.selectedIndex = 0; });
     document.querySelectorAll("input[type=checkbox]").forEach(el => { el.checked = false; });
-    document.querySelectorAll('input[name="formType"]').forEach(el => {
-      el.checked = (el.value === "reg");
-    });
 
     location.reload();
   });
@@ -643,11 +616,10 @@ document.getElementById("modalApply").addEventListener("click", () => {
   saveFormState();
 });
 
-const runBtn = document.getElementById("run");
 const statusEl = document.getElementById("status");
 let lastBlobUrl = null;
 
-runBtn.onclick = async () => {
+async function fillAndDownload(pdfUrl, typeSuffix) {
   statusEl.textContent = "Готовлю PDF…";
 
   if (lastBlobUrl) {
@@ -656,9 +628,7 @@ runBtn.onclick = async () => {
   }
 
   try {
-    const formType = getFormType();
-    const url = FORM_FILES[formType];
-    const bytes = await fetch(url).then(r => r.arrayBuffer());
+    const bytes = await fetch(pdfUrl).then(r => r.arrayBuffer());
 
     const { PDFDocument } = PDFLib;
     const doc = await PDFDocument.load(bytes);
@@ -736,7 +706,6 @@ runBtn.onclick = async () => {
     const mm = String(d.getMonth() + 1).padStart(2, "0");
     const yyyy = d.getFullYear();
     const fullName = [given, surname].filter(Boolean).join(" ") || "без имени";
-    const typeSuffix = FORM_LABELS[formType] || "REG";
     const fileName = `Анкета (${fullName}) ${typeSuffix} ${dd}-${mm}-${yyyy}.pdf`;
 
     const a = document.createElement("a");
@@ -753,4 +722,11 @@ runBtn.onclick = async () => {
   } catch (e) {
     statusEl.textContent = "Ошибка: " + e.message;
   }
-};
+}
+
+document.getElementById("run_msc").addEventListener("click", () => {
+  fillAndDownload("form_msc.pdf", "MSC");
+});
+document.getElementById("run_reg").addEventListener("click", () => {
+  fillAndDownload("form_reg.pdf", "REG");
+});
