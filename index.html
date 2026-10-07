@@ -33,6 +33,9 @@
     align-items: center;
     user-select: none;
     color: #fff;
+    font-size: 14px;
+    font-weight: 700;
+    letter-spacing: .4px;
   }
   .side-btn + .side-btn { border-top: 1px solid rgba(0,0,0,.15); }
 
@@ -40,66 +43,20 @@
   #loadText { background: #3d6ea8; }
   #loadText:hover { background: #315d90; }
 
-  /* средняя — очистка данных */
+  /* вторая — очистка данных */
   #clearData { background: #a83d4a; }
   #clearData:hover { background: #8f3140; }
 
-  /* нижняя — скачать PDF */
-  #run { background: #2f8f5b; }
-  #run:hover { background: #26794c; }
+  /* нижние — скачать PDF */
+  #run_msc { background: #2f8f5b; }
+  #run_msc:hover { background: #26794c; }
+  #run_reg { background: #2f8f5b; }
+  #run_reg:hover { background: #26794c; }
 
   .side-btn svg {
     width: 44px;
     height: 44px;
     display: block;
-  }
-
-  /* селектор анкеты — компактный, над кнопкой скачивания */
-  .form-selector {
-    flex: 0 0 auto;
-    display: flex;
-    flex-direction: column;
-    border-top: 1px solid rgba(0,0,0,.15);
-    background: #f1f5f8;
-  }
-  .form-opt {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    padding: 8px 10px;
-    font-size: 12px;
-    font-weight: 600;
-    letter-spacing: .3px;
-    text-transform: uppercase;
-    color: #4a5a66;
-    cursor: pointer;
-    user-select: none;
-    transition: background .12s, color .12s;
-  }
-  .form-opt + .form-opt { border-top: 1px solid rgba(0,0,0,.06); }
-  .form-opt:hover { background: #e4ecf2; }
-  .form-opt input {
-    -webkit-appearance: none;
-    appearance: none;
-    width: 14px;
-    height: 14px;
-    margin: 0;
-    border: 1.5px solid #9aa9b4;
-    border-radius: 50%;
-    background: #fff;
-    cursor: pointer;
-    position: relative;
-    flex: 0 0 auto;
-    transition: border-color .12s;
-  }
-  .form-opt input:hover { border-color: #2f8f5b; }
-  .form-opt input:checked {
-    border-color: #2f8f5b;
-    background: #2f8f5b;
-    box-shadow: inset 0 0 0 2px #fff;
-  }
-  .form-opt input:checked + span {
-    color: #2f8f5b;
   }
 
   /* основной контент */
@@ -216,9 +173,12 @@
       <div><label>5. Место рождения</label><textarea id="f_pob" rows="1"></textarea></div>
       <div><label>6. Страна рождения</label><textarea id="f_cob" rows="1"></textarea></div>
     </div>
-    <div class="row r3">
+    <div class="row r2">
       <div><label>7. Гражданство в настоящее время</label><textarea id="f_citizenship_now" rows="1"></textarea></div>
       <div><label>Гражданство при рождении</label><textarea id="f_citizenship_birth" rows="1"></textarea></div>
+    </div>
+    <button class="toggle-btn" data-target="block_citizenship_other">Иное гражданство (развернуть)</button>
+    <div class="row r1 hidden" id="block_citizenship_other">
       <div><label>Иное гражданство</label><textarea id="f_citizenship_other" rows="1"></textarea></div>
     </div>
     <div class="row r2">
@@ -338,7 +298,7 @@
   </div>
 
   <div class="section sec-green">
-    <div class="row r4">
+    <div class="row r2">
       <div><label>23. Цель поездки</label>
         <select id="f_purpose">
           <option value="tourism">туризм</option>
@@ -355,6 +315,10 @@
       </div>
       <div><label>25. Страна основного пребывания</label><textarea id="f_main_country" rows="1"></textarea></div>
       <div><label>26. Страна первого въезда</label><textarea id="f_first_entry" rows="1"></textarea></div>
+    </div>
+
+    <button class="toggle-btn" data-target="block_purpose_other">23. Иная цель поездки (развернуть)</button>
+    <div class="row r1 hidden" id="block_purpose_other">
       <div><label>23. Иная цель (указать)</label><textarea id="f_purpose_other" rows="1"></textarea></div>
     </div>
 
@@ -495,24 +459,8 @@
     </svg>
   </button>
 
-  <div class="form-selector">
-    <label class="form-opt" title="Анкета для Москвы (form_msc.pdf)">
-      <input type="radio" name="formType" value="msc">
-      <span>МСК</span>
-    </label>
-    <label class="form-opt" title="Анкета для регионов (form_reg.pdf)">
-      <input type="radio" name="formType" value="reg" checked>
-      <span>РЕГИОНЫ</span>
-    </label>
-  </div>
-
-  <button class="side-btn" id="run" title="Заполнить и скачать">
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"
-         stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-      <path d="M12 5v14"/>
-      <path d="M19 12l-7 7-7-7"/>
-    </svg>
-  </button>
+  <button class="side-btn" id="run_msc" title="Заполнить и скачать анкету МСК">МСК</button>
+  <button class="side-btn" id="run_reg" title="Заполнить и скачать анкету для регионов">РЕГИОНЫ</button>
 </div>
 
 <div id="modal" class="modal-overlay hidden">
