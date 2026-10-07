@@ -39,8 +39,11 @@
   }
   .side-btn + .side-btn { border-top: 1px solid rgba(0,0,0,.15); }
 
-  /* верхняя — загрузка из текста */
-  #loadText { background: #3d6ea8; }
+  /* верхняя — загрузка из текста (короче остальных) */
+  #loadText {
+    flex: 0 0 60px;
+    background: #3d6ea8;
+  }
   #loadText:hover { background: #315d90; }
 
   /* вторая — очистка данных */
@@ -50,8 +53,8 @@
   /* нижние — скачать PDF */
   #run_msc { background: #2f8f5b; }
   #run_msc:hover { background: #26794c; }
-  #run_reg { background: #2f8f5b; }
-  #run_reg:hover { background: #26794c; }
+  #run_reg { background: #1f7a82; }
+  #run_reg:hover { background: #176069; }
 
   .side-btn svg {
     width: 44px;
@@ -82,8 +85,11 @@
   .row { display: grid; gap: 10px 14px; margin-bottom: 10px; }
   .r1 { grid-template-columns: 1fr; }
   .r2 { grid-template-columns: 1fr 1fr; }
+  .r2x { grid-template-columns: 2fr 1fr; }
   .r3 { grid-template-columns: 1fr 1fr 1fr; }
+  .r3x { grid-template-columns: 1.4fr 1fr 1fr; }
   .r4 { grid-template-columns: 1fr 1fr 1fr 1fr; }
+  .r5x { grid-template-columns: 1.4fr 1fr 1fr 1fr 1.3fr; }
 
   .money-checks { display: flex; flex-wrap: wrap; gap: 14px; padding: 8px 0; }
   .money-checks label {
@@ -130,6 +136,10 @@
   .hidden { display: none !important; }
 
   #status { margin-top: 14px; font-weight: bold; color: #2a7; }
+
+  @media (max-width: 900px) {
+    .r2, .r2x, .r3, .r3x, .r4, .r5x { grid-template-columns: 1fr; }
+  }
 
   .modal-overlay {
     position: fixed; inset: 0; background: rgba(0,0,0,.5);
@@ -216,8 +226,8 @@
       <div><textarea id="f_id" rows="1"></textarea></div>
     </div>
 
-    <div class="row r4">
-      <div><label>12. Тип проездного документа</label>
+    <div class="row r5x">
+      <div><label>12. Тип документа</label>
         <select id="f_doctype">
           <option value="ordinary">обычный</option>
           <option value="diplomatic">дипломатический</option>
@@ -228,14 +238,12 @@
         </select>
       </div>
       <div><label>13. Номер</label><textarea id="f_passport" rows="1"></textarea></div>
-      <div><label>14. Дата выдачи</label><textarea id="f_passport_issue" rows="1" placeholder="ДД-ММ-ГГГГ"></textarea></div>
+      <div><label>14. Выдан</label><textarea id="f_passport_issue" rows="1" placeholder="ДД-ММ-ГГГГ"></textarea></div>
       <div><label>15. Действителен до</label><textarea id="f_passport_valid" rows="1" placeholder="ДД-ММ-ГГГГ"></textarea></div>
+      <div><label>16. Кем выдан</label><textarea id="f_passport_issuer" rows="1"></textarea></div>
     </div>
     <div class="row r1 hidden" id="block_doctype_other">
       <div><label>12. Иной тип документа (указать)</label><textarea id="f_doctype_other" rows="1"></textarea></div>
-    </div>
-    <div class="row r1">
-      <div><label>16. Кем выдан (страна)</label><textarea id="f_passport_issuer" rows="1"></textarea></div>
     </div>
 
     <button class="toggle-btn" data-target="block_eu">17–18. Персональные данные члена семьи — гражданина ЕС (развернуть)</button>
@@ -265,11 +273,9 @@
       </div>
     </div>
 
-    <div class="row r1">
-      <div><label>19. Домашний адрес и email заявителя</label><textarea id="f_address" rows="1"></textarea></div>
-    </div>
-    <div class="row r1">
-      <div><label>19. Номер телефона</label><textarea id="f_phone" rows="1"></textarea></div>
+    <div class="row r2x">
+      <div><label>Адрес и email заявителя</label><textarea id="f_address" rows="1"></textarea></div>
+      <div><label>Телефон</label><textarea id="f_phone" rows="1"></textarea></div>
     </div>
 
     <button class="toggle-btn" data-target="block_residence">20. Страна проживания, если не является страной гражданства (развернуть)</button>
@@ -298,7 +304,7 @@
   </div>
 
   <div class="section sec-green">
-    <div class="row r2">
+    <div class="row r3x">
       <div><label>23. Цель поездки</label>
         <select id="f_purpose">
           <option value="tourism">туризм</option>
@@ -317,14 +323,10 @@
       <div><label>26. Страна первого въезда</label><textarea id="f_first_entry" rows="1"></textarea></div>
     </div>
 
-    <button class="toggle-btn" data-target="block_purpose_other">23. Иная цель поездки (развернуть)</button>
-    <div class="row r1 hidden" id="block_purpose_other">
+    <button class="toggle-btn" data-target="block_purpose">23–24. Иная цель и дополнительные сведения (развернуть)</button>
+    <div class="row r1 hidden" id="block_purpose">
       <div><label>23. Иная цель (указать)</label><textarea id="f_purpose_other" rows="1"></textarea></div>
-    </div>
-
-    <button class="toggle-btn" data-target="block_purpose_extra">24. Дополнительные сведения о цели поездки (развернуть)</button>
-    <div class="row r1 hidden" id="block_purpose_extra">
-      <div><textarea id="f_purpose_extra" rows="2"></textarea></div>
+      <div style="margin-top:8px"><label>24. Дополнительные сведения о цели поездки</label><textarea id="f_purpose_extra" rows="2"></textarea></div>
     </div>
 
     <div class="row r3">
