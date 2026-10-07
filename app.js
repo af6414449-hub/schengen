@@ -347,17 +347,21 @@ document.querySelectorAll("label").forEach(el => {
 document.querySelectorAll("textarea[placeholder='ДД-ММ-ГГГГ']").forEach(attachDateMask);
 
 const STORAGE_KEY = "visaFiller:v2";
-const FORM_TYPE_KEY = "visaFiller:formType";
 let storageDisabled = false;
 
 const FORM_FILES = {
   msc: "form_msc.pdf",
-  rgn: "form_rgn.pdf",
+  reg: "form_reg.pdf",
+};
+
+const FORM_LABELS = {
+  msc: "MSC",
+  reg: "REG",
 };
 
 function getFormType() {
   const el = document.querySelector('input[name="formType"]:checked');
-  return el && FORM_FILES[el.value] ? el.value : "rgn";
+  return el && FORM_FILES[el.value] ? el.value : "reg";
 }
 
 function setFormType(type) {
@@ -489,7 +493,7 @@ document.querySelectorAll('input[name="formType"]').forEach(el => {
     document.querySelectorAll("select").forEach(el => { el.selectedIndex = 0; });
     document.querySelectorAll("input[type=checkbox]").forEach(el => { el.checked = false; });
     document.querySelectorAll('input[name="formType"]').forEach(el => {
-      el.checked = (el.value === "rgn");
+      el.checked = (el.value === "reg");
     });
 
     location.reload();
@@ -652,7 +656,8 @@ runBtn.onclick = async () => {
   }
 
   try {
-    const url = FORM_FILES[getFormType()];
+    const formType = getFormType();
+    const url = FORM_FILES[formType];
     const bytes = await fetch(url).then(r => r.arrayBuffer());
 
     const { PDFDocument } = PDFLib;
@@ -731,7 +736,7 @@ runBtn.onclick = async () => {
     const mm = String(d.getMonth() + 1).padStart(2, "0");
     const yyyy = d.getFullYear();
     const fullName = [given, surname].filter(Boolean).join(" ") || "без имени";
-    const typeSuffix = getFormType() === "msc" ? "MSC" : "REG";
+    const typeSuffix = FORM_LABELS[formType] || "REG";
     const fileName = `Анкета (${fullName}) ${typeSuffix} ${dd}-${mm}-${yyyy}.pdf`;
 
     const a = document.createElement("a");
