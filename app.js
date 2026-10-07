@@ -347,10 +347,26 @@ document.querySelectorAll("label").forEach(el => {
 document.querySelectorAll("textarea[placeholder='ДД-ММ-ГГГГ']").forEach(attachDateMask);
 
 const STORAGE_KEY = "visaFiller:v2";
+const FORM_TYPE_KEY = "visaFiller:formType";
 let storageDisabled = false;
 
+const FORM_FILES = {
+  msc: "form_msc.pdf",
+  rgn: "form_rgn.pdf",
+};
+
+function getFormType() {
+  const el = document.querySelector('input[name="formType"]:checked');
+  return el && FORM_FILES[el.value] ? el.value : "rgn";
+}
+
+function setFormType(type) {
+  const el = document.querySelector(`input[name="formType"][value="${type}"]`);
+  if (el) el.checked = true;
+}
+
 function collectFormState() {
-  const s = { texts: {}, selects: {}, checks: {}, toggles: {} };
+  const s = { texts: {}, selects: {}, checks: {}, toggles: {}, formType: getFormType() };
   document.querySelectorAll("textarea").forEach(el => { if (el.id) s.texts[el.id] = el.value; });
   document.querySelectorAll("select").forEach(el => { if (el.id) s.selects[el.id] = el.value; });
   document.querySelectorAll("input[type=checkbox]").forEach(el => { if (el.id) s.checks[el.id] = el.checked; });
@@ -360,6 +376,7 @@ function collectFormState() {
 
 function applyFormState(s) {
   if (!s) return;
+  if (s.formType) setFormType(s.formType);
   Object.entries(s.texts || {}).forEach(([id, v]) => {
     const el = document.getElementById(id);
     if (el) { el.value = v ?? ""; autoGrow(el); }
@@ -419,6 +436,12 @@ loadFormState();
 syncDoctypeBlock();
 syncMoneyBlocks();
 
+document.querySelectorAll('input[name="formType"]').forEach(el => {
+  el.addEventListener("change", () => {
+    if (!storageDisabled) saveFormState();
+  });
+});
+
 (function attachAutoSave() {
   let timer = null;
   const schedule = () => {
@@ -465,6 +488,9 @@ syncMoneyBlocks();
     document.querySelectorAll("textarea").forEach(el => { el.value = ""; });
     document.querySelectorAll("select").forEach(el => { el.selectedIndex = 0; });
     document.querySelectorAll("input[type=checkbox]").forEach(el => { el.checked = false; });
+    document.querySelectorAll('input[name="formType"]').forEach(el => {
+      el.checked = (el.value === "rgn");
+    });
 
     location.reload();
   });
@@ -626,7 +652,7 @@ runBtn.onclick = async () => {
   }
 
   try {
-    const url = "form.pdf";
+    const url = FORM_FILES[getFormType()];
     const bytes = await fetch(url).then(r => r.arrayBuffer());
 
     const { PDFDocument } = PDFLib;
