@@ -731,7 +731,8 @@ runBtn.onclick = async () => {
     const mm = String(d.getMonth() + 1).padStart(2, "0");
     const yyyy = d.getFullYear();
     const fullName = [given, surname].filter(Boolean).join(" ") || "без имени";
-    const fileName = `Анкета (${fullName}) ${dd}-${mm}-${yyyy}.pdf`;
+    const typeSuffix = getFormType() === "msc" ? "MSC" : "REG";
+    const fileName = `Анкета (${fullName}) ${typeSuffix} ${dd}-${mm}-${yyyy}.pdf`;
 
     const a = document.createElement("a");
     a.href = urlOut;
